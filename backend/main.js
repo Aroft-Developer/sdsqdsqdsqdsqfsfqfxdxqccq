@@ -22,7 +22,7 @@ const etablissements = fullData.map(e => ({
 }));
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || "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",
+  apiKey: process.env.OPENAI_API_KEY || "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",
 });
 
 app.post("/conseil", async (req, res) => {
