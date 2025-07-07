@@ -17,7 +17,7 @@ function Chatbot({ isDark }: ChatbotProps) {
     setReponse("");
 
     try {
-      const res = await fetch("http://localhost:3001/conseil", {
+      const res = await fetch("https://project-cwgk.onrender.com/conseil", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: situation }),
