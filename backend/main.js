@@ -61,22 +61,54 @@ app.post("/conseil", async (req, res) => {
 });
 
 // ✅ Endpoint /analyse
+// ✅ Endpoint /analyse
 app.post("/analyse", async (req, res) => {
   try {
     const userRequest = req.body.text;
     if (!userRequest) return res.status(400).json({ error: "texte manquant" });
 
-    const etabsLimites = etablissements.slice(0, 40); // limite pour éviter trop de tokens
+    const etabsLimites = etablissements.slice(0, 40); // toujours une petite marge
 
-    const prompt = `Tu es un assistant éducatif. À partir de cette situation : "${userRequest}", choisis les établissements les plus adaptés parmi la liste suivante (format JSON). Renvoie UNIQUEMENT un JSON avec un tableau "recommandations", chaque item doit contenir : id, nom, raison (courte) du choix.
+    const prompt = `
+Tu es un assistant éducatif spécialisé. 
+À partir de cette situation :
 
-Liste des établissements :\n\n${JSON.stringify(etabsLimites, null, 2)}\n\nRéponds avec uniquement un objet JSON bien formé.`;
+"${userRequest}"
+
+…tu dois sélectionner les **6 établissements maximum** les plus adaptés dans la liste JSON suivante.
+
+Chaque établissement sélectionné doit être **justifié** par rapport à la situation de départ, en tenant compte des informations présentes ET de ce que tu peux retrouver en ligne (nom, type, ville, etc.).
+
+### Liste d'établissements :
+${JSON.stringify(etabsLimites, null, 2)}
+
+### Format de réponse STRICT (pas de texte autour, uniquement ce JSON) :
+{
+  "resultats": [
+    {
+      "id": "string",
+      "nom": "string",
+      "type": "string",
+      "age_min": number,
+      "age_max": number,
+      "ville": "string",
+      "site_web": "string",
+      "google_maps": "string"
+    }
+  ],
+  "justification": "Texte explicatif enrichi avec des informations utiles en ligne sur les établissements proposés"
+}
+
+⚠️ Remplace les champs vides ou inconnus dans le JSON par la chaîne de caractères "Inconnu".
+
+⚠️ Ne mets aucun texte AVANT ou APRÈS ce JSON. Donne uniquement l'objet JSON pur au bon format.
+`;
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4",
       messages: [{ role: "user", content: prompt }],
       temperature: 0.7,
-      max_tokens: 700,
+      max_tokens: 1000, // augmenté car il y aura une justification
     });
 
     const rawResponse = completion.choices[0].message.content.trim();
@@ -110,6 +142,7 @@ Liste des établissements :\n\n${JSON.stringify(etabsLimites, null, 2)}\n\nRépo
     res.status(500).json({ error: "Erreur serveur" });
   }
 });
+
 
 // ✅ Port dynamique pour Render
 const PORT = process.env.PORT || 3000;
