@@ -86,21 +86,24 @@ function Search({ isDark }: SearchProps) {
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Votre recherche..."
-                  className={`flex-grow bg-transparent outline-none text-base ${
+                  className={`flex-grow bg-transparent outline-none text-base max-h-10 ${
                     isDark ? "text-[#1d283a] placeholder-gray-400" : "text-[#1d283a] placeholder-gray-600"
                   }`}
                   disabled={loading}
+                  style={{ minHeight: "36px" }}
                 />
                 <button
                   onClick={handleSend}
                   disabled={isDisabled}
-                  className={`ml-2 w-8 h-8 flex items-center justify-center rounded-full transition ${
+                  className={`ml-2 flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-full transition ${
                     isDisabled
                       ? "bg-gray-400 cursor-not-allowed"
                       : isDark
                       ? "bg-[#1d283a] hover:bg-[#1d283a99] cursor-pointer"
                       : "bg-[#c0c0c0] hover:bg-[#9ca3af] cursor-pointer"
                   }`}
+                  type="button"
+                  aria-label="Envoyer"
                 >
                   <span className={`text-lg ${isDark ? "text-white" : "text-black"}`}>↑</span>
                 </button>
