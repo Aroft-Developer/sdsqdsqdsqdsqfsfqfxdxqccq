@@ -40,7 +40,7 @@ function Search({ isDark }: SearchProps) {
       const data = await res.json();
       console.log("📦 Données reçues :", data);
 
-      setEtablissements(data.recommandations || []);
+      setEtablissements(data.resultats || []);
       setJustification("Voici les établissements recommandés selon votre situation.");
     } catch (error) {
       console.error(error);
