@@ -122,7 +122,6 @@ Remplace les valeurs manquantes par "Inconnu".
     });
 
     const rawResponse = completion.choices[0].message.content.trim();
-    console.log("🧾 Réponse GPT brute :", rawResponse);
 
     let maybeJson;
     try {
