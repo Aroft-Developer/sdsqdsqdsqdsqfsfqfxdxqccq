@@ -58,23 +58,23 @@ function Search({ isDark }: SearchProps) {
 
   return (
     <div
-      className={`font-[Outfit] w-full min-h-screen overflow-x-hidden flex flex-col items-center ${
-        !hasResponse && !loading ? "justify-center" : "justify-start"
-      } transition ${isDark ? "bg-white text-[#1d283a]" : "bg-[#040712] text-white"}`}
+      className={`font-[Outfit] w-full h-[calc(100vh-68px-68px)] flex flex-col items-center transition ${
+        isDark ? "bg-white text-[#1d283a]" : "bg-[#040712] text-white"
+      }`}
+      style={{ paddingTop: "16px", paddingBottom: "16px" }} // espace en haut et bas sans scroll
     >
-      <div className="items-center w-full max-w-[990px] px-4 pt-4">
+      <div className="items-center w-full max-w-[990px] px-4 flex flex-col">
+        {/* ❌ En-tête + input masqués si une réponse a été reçue */}
         {!hasResponse && !loading && (
           <>
-            <div className="text-center p-8">
-              <h1 className="text-4xl sm:text-6xl font-bold mb-1">
-                Rechercher des Etablissements
-              </h1>
+            <div className="text-center p-8 w-full">
+              <h1 className="text-4xl sm:text-6xl font-bold mb-1">Rechercher des Etablissements</h1>
               <h1 className="text-3xl sm:text-5xl font-bold mb-6 underline underline-offset-4 decoration-[#9ca3af]">
                 Plus simplement ⚡️
               </h1>
             </div>
 
-            <div className="flex justify-center mt-2 mb-6 px-4">
+            <div className="flex justify-center mt-2 mb-6 px-4 w-full">
               <div
                 className={`flex items-center px-4 py-2 rounded-full w-full max-w-[600px] sm:max-w-[500px] max-[420px]:max-w-[90%] border ${
                   isDark ? "bg-[#e5e7eb] border-[#9ca3af]" : "bg-[#e5e7eb] border-transparent"
@@ -87,16 +87,14 @@ function Search({ isDark }: SearchProps) {
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Votre recherche..."
                   className={`flex-grow bg-transparent outline-none text-base ${
-                    isDark
-                      ? "text-[#1d283a] placeholder-gray-400"
-                      : "text-[#1d283a] placeholder-gray-600"
+                    isDark ? "text-[#1d283a] placeholder-gray-400" : "text-[#1d283a] placeholder-gray-600"
                   }`}
                   disabled={loading}
                 />
                 <button
                   onClick={handleSend}
                   disabled={isDisabled}
-                  className={`ml-2 w-8 h-8 min-w-[2rem] min-h-[2rem] aspect-square flex items-center justify-center rounded-full transition shrink-0 ${
+                  className={`ml-2 w-8 h-8 flex items-center justify-center rounded-full transition ${
                     isDisabled
                       ? "bg-gray-400 cursor-not-allowed"
                       : isDark
@@ -112,7 +110,7 @@ function Search({ isDark }: SearchProps) {
         )}
 
         {loading && (
-          <div className="flex justify-center items-center my-20 text-lg font-semibold gap-2">
+          <div className="flex justify-center items-center mb-6 text-lg font-semibold gap-2">
             Chargement...
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -125,31 +123,46 @@ function Search({ isDark }: SearchProps) {
           </div>
         )}
 
+        {/* Résultats des établissements */}
         {etablissements.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6 mt-8">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6 w-full">
             {etablissements.map((etab) => (
               <div
                 key={etab.id}
-                className={`p-4 rounded-lg border w-full break-words ${
+                className={`p-4 rounded-lg border ${
                   isDark ? "border-gray-300 bg-gray-100" : "border-gray-600 bg-gray-800"
                 } shadow`}
               >
-                <h2 className="text-lg font-semibold mb-1 break-words">
-                  {etab.nom}
-                </h2>
-                <p><strong>Type:</strong> {etab.type}</p>
-                <p><strong>Ville:</strong> {etab.ville}</p>
-                <p><strong>Âge:</strong> {etab.age_min} - {etab.age_max} ans</p>
+                <h2 className="text-xl font-semibold mb-1">{etab.nom}</h2>
+                <p>
+                  <strong>Type:</strong> {etab.type}
+                </p>
+                <p>
+                  <strong>Ville:</strong> {etab.ville}
+                </p>
+                <p>
+                  <strong>Âge:</strong> {etab.age_min} - {etab.age_max} ans
+                </p>
                 {etab.site_web && (
                   <p>
-                    <a href={etab.site_web} target="_blank" rel="noopener noreferrer" className="underline text-blue-600">
+                    <a
+                      href={etab.site_web}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline text-blue-600"
+                    >
                       Site Web
                     </a>
                   </p>
                 )}
                 {etab.google_maps && (
                   <p>
-                    <a href={etab.google_maps} target="_blank" rel="noopener noreferrer" className="underline text-green-600">
+                    <a
+                      href={etab.google_maps}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline text-green-600"
+                    >
                       Google Maps
                     </a>
                   </p>
@@ -159,9 +172,10 @@ function Search({ isDark }: SearchProps) {
           </div>
         )}
 
+        {/* Justification toujours affichée si dispo */}
         {!loading && justification && (
           <div
-            className={`rounded-md border p-4 mb-6 mt-6 ${
+            className={`rounded-md border p-4 mb-6 w-full ${
               isDark ? "border-gray-300 bg-gray-50 text-[#1d283a]" : "border-gray-600 bg-gray-900"
             }`}
           >
@@ -170,8 +184,9 @@ function Search({ isDark }: SearchProps) {
           </div>
         )}
 
+        {/* Bouton "refaire une recherche" avec marge en bas */}
         {hasResponse && !loading && (
-          <div className="mt-6 mb-12 text-center">
+          <div className="mt-6 mb-6 text-center w-full">
             <button
               onClick={handleReset}
               className={`px-6 py-2 rounded-full font-semibold transition ease-in-out duration-300 border ${
