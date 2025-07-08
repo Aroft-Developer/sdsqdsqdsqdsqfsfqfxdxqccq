@@ -37,18 +37,22 @@ const openai = new OpenAI({
 });
 
 // ✅ Endpoint /conseil
-app.post("/conseil", async (req, res) => {
+aapp.post("/conseil", async (req, res) => {
   try {
     const situation = req.body.text;
     if (!situation) return res.status(400).json({ error: "situation manquante" });
 
-    const prompt = `Tu es un éducateur spécialisé. Donne un conseil court, concret et orienté solution à un jeune dans cette situation : "${situation}"`;
+    const prompt = `Tu es un éducateur spécialisé expérimenté qui échange avec un collègue éducateur spécialisé. 
+Dans le cadre de ton métier, analyse la situation suivante : "${situation}".
+Fournis un conseil professionnel, clair, structuré et orienté solution, destiné à un éducateur spécialisé.
+Le conseil doit comporter entre 10 et 20 lignes, être pragmatique, éviter les généralités, et inclure des pistes d'intervention concrètes, ainsi que des points d'attention spécifiques à cette situation. 
+Tu peux évoquer les démarches à envisager, les acteurs à mobiliser, et les risques à surveiller, toujours dans une optique de soutien efficace au jeune.`;
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4",
       messages: [{ role: "user", content: prompt }],
       temperature: 0.7,
-      max_tokens: 500,
+      max_tokens: 700,
     });
 
     const responseText = completion.choices[0].message.content.trim();
