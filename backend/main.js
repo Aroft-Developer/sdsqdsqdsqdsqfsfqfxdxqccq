@@ -65,24 +65,26 @@ app.post("/conseil", async (req, res) => {
 app.post("/analyse", async (req, res) => {
   try {
     const userRequest = req.body.text;
-    if (!userRequest) return res.status(400).json({ error: "texte manquant" });
+    if (!userRequest) return res.status(400).json({ error: "texte manquante" });
 
-    const etabsLimites = etablissements.slice(0, 40); // toujours une petite marge
+    const etabsLimites = etablissements.slice(0, 40);
 
     const prompt = `
-Tu es un assistant éducatif spécialisé. 
+Tu es un assistant éducatif spécialisé.
+
 À partir de cette situation :
 
 "${userRequest}"
 
-…tu dois sélectionner les **6 établissements maximum** les plus adaptés dans la liste JSON suivante.
+Tu dois sélectionner au maximum 6 établissements parmi cette liste, en tenant compte du profil, de l'âge, du type de besoin et des ressources en ligne disponibles.
 
-Chaque établissement sélectionné doit être **justifié** par rapport à la situation de départ, en tenant compte des informations présentes ET de ce que tu peux retrouver en ligne (nom, type, ville, etc.).
+⚠️ Si la demande n'a aucun rapport avec un placement, un jeune, ou les établissements ci-dessous, tu DOIS renvoyer un objet JSON avec uniquement une clé "justification", sans remplir "resultats".
 
-### Liste d'établissements :
+Liste des établissements :
 ${JSON.stringify(etabsLimites, null, 2)}
 
-### Format de réponse STRICT (pas de texte autour, uniquement ce JSON) :
+Réponds STRICTEMENT avec ce format :
+
 {
   "resultats": [
     {
@@ -99,22 +101,25 @@ ${JSON.stringify(etabsLimites, null, 2)}
   "justification": "Texte explicatif enrichi avec des informations utiles en ligne sur les établissements proposés"
 }
 
-⚠️ Remplace les champs vides ou inconnus dans le JSON par la chaîne de caractères "Inconnu".
+⚠️ Si aucun établissement ne correspond, renvoie uniquement :
+{
+  "justification": "Explication sur pourquoi aucun établissement ne correspond à cette demande."
+}
 
-⚠️ Ne mets aucun texte AVANT ou APRÈS ce JSON. Donne uniquement l'objet JSON pur au bon format.
+⚠️ Ne mets aucun texte AVANT ou APRÈS ce JSON. Juste le JSON pur.
+Remplace les valeurs manquantes par "Inconnu".
 `;
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4",
       messages: [{ role: "user", content: prompt }],
       temperature: 0.7,
-      max_tokens: 1000, // augmenté car il y aura une justification
+      max_tokens: 1100,
     });
 
     const rawResponse = completion.choices[0].message.content.trim();
     console.log("🧾 Réponse GPT brute :", rawResponse);
 
-    // ✅ Extraction JSON entre les accolades
     let maybeJson;
     try {
       const match = rawResponse.match(/\{[\s\S]*\}/);
@@ -125,7 +130,6 @@ ${JSON.stringify(etabsLimites, null, 2)}
       return res.status(500).json({ error: "Impossible d'extraire un JSON valide" });
     }
 
-    // ✅ Parsing JSON
     let parsed;
     try {
       parsed = JSON.parse(maybeJson);
@@ -135,13 +139,23 @@ ${JSON.stringify(etabsLimites, null, 2)}
       return res.status(500).json({ error: "Erreur parsing réponse GPT" });
     }
 
-    res.json(parsed);
+    // ✅ Si pas de resultats, renvoyer uniquement justification
+    if (!parsed.resultats || !Array.isArray(parsed.resultats) || parsed.resultats.length === 0) {
+      return res.json({
+        resultats: [],
+        justification: parsed.justification || "Aucun établissement ne correspond à cette demande.",
+      });
+    }
+
+    // ✅ Sinon, renvoyer tout
+    return res.json(parsed);
 
   } catch (err) {
     console.error("❌ Erreur serveur (/analyse) :", err);
     res.status(500).json({ error: "Erreur serveur" });
   }
 });
+
 
 
 // ✅ Port dynamique pour Render
