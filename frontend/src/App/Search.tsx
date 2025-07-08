@@ -23,7 +23,7 @@ function Search({ isDark }: SearchProps) {
 
   const isDisabled = search.trim().length === 0 || loading;
 
-  const handleSend = async () => {
+    const handleSend = async () => {
     if (search.trim() === "") return;
 
     setLoading(true);
@@ -38,8 +38,10 @@ function Search({ isDark }: SearchProps) {
       });
 
       const data = await res.json();
-      setEtablissements(data.resultats || []);
-      setJustification(data.justification || "Aucune justification fournie.");
+      console.log("📦 Données reçues :", data);
+
+      setEtablissements(data.recommandations || []);
+      setJustification("Voici les établissements recommandés selon votre situation.");
     } catch (error) {
       console.error(error);
       setJustification("Une erreur est survenue lors de la requête.");
