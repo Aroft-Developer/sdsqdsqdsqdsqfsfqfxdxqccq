@@ -74,40 +74,39 @@ function Search({ isDark }: SearchProps) {
               </h1>
             </div>
 
-            <div className="flex justify-center px-4 w-full max-w-[600px] sm:max-w-[500px] max-[420px]:max-w-[90%]">
-              <div
-                className={`flex items-center px-4 py-2 rounded-full w-full border ${
-                  isDark ? "bg-[#e5e7eb] border-[#9ca3af]" : "bg-[#e5e7eb] border-transparent"
+            {/* Input + bouton intégré */}
+            <div
+              className={`flex items-center w-full max-w-[600px] sm:max-w-[500px] max-[420px]:max-w-[90%] rounded-full border px-4 py-2 ${
+                isDark ? "bg-[#e5e7eb] border-[#9ca3af]" : "bg-[#e5e7eb] border-transparent"
+              }`}
+            >
+              <input
+                type="text"
+                maxLength={100}
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Votre recherche..."
+                disabled={loading}
+                className={`flex-grow bg-transparent outline-none text-base max-h-10 border-none pr-0 ${
+                  isDark ? "text-[#1d283a] placeholder-gray-400" : "text-[#1d283a] placeholder-gray-600"
+                }`}
+                style={{ minHeight: "36px" }}
+              />
+              <button
+                onClick={handleSend}
+                disabled={isDisabled}
+                type="button"
+                aria-label="Envoyer"
+                className={`flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-r-full transition ${
+                  isDisabled
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : isDark
+                    ? "bg-[#1d283a] hover:bg-[#1d283a99] cursor-pointer"
+                    : "bg-[#c0c0c0] hover:bg-[#9ca3af] cursor-pointer"
                 }`}
               >
-                <input
-                  type="text"
-                  maxLength={100}
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Votre recherche..."
-                  className={`flex-grow bg-transparent outline-none text-base max-h-10 ${
-                    isDark ? "text-[#1d283a] placeholder-gray-400" : "text-[#1d283a] placeholder-gray-600"
-                  }`}
-                  disabled={loading}
-                  style={{ minHeight: "36px" }}
-                />
-                <button
-                  onClick={handleSend}
-                  disabled={isDisabled}
-                  className={`ml-2 flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-full transition ${
-                    isDisabled
-                      ? "bg-gray-400 cursor-not-allowed"
-                      : isDark
-                      ? "bg-[#1d283a] hover:bg-[#1d283a99] cursor-pointer"
-                      : "bg-[#c0c0c0] hover:bg-[#9ca3af] cursor-pointer"
-                  }`}
-                  type="button"
-                  aria-label="Envoyer"
-                >
-                  <span className={`text-lg ${isDark ? "text-white" : "text-black"}`}>↑</span>
-                </button>
-              </div>
+                <span className={`text-lg ${isDark ? "text-white" : "text-black"}`}>↑</span>
+              </button>
             </div>
           </div>
         )}
