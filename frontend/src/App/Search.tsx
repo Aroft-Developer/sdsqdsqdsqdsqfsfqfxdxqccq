@@ -96,7 +96,7 @@ function Search({ isDark }: SearchProps) {
                 <button
                   onClick={handleSend}
                   disabled={isDisabled}
-                  className={`ml-2 w-8 h-8 flex items-center justify-center rounded-full transition ${
+                  className={`ml-2 w-8 h-8 min-w-[2rem] min-h-[2rem] aspect-square flex items-center justify-center rounded-full transition shrink-0 ${
                     isDisabled
                       ? "bg-gray-400 cursor-not-allowed"
                       : isDark
@@ -116,9 +116,7 @@ function Search({ isDark }: SearchProps) {
             Chargement...
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className={`animate-spin w-6 h-6 ${
-                isDark ? "text-[#1d283a]" : "text-white"
-              }`}
+              className={`animate-spin w-6 h-6 ${isDark ? "text-[#1d283a]" : "text-white"}`}
               fill="currentColor"
               viewBox="0 0 24 24"
             >
@@ -133,43 +131,25 @@ function Search({ isDark }: SearchProps) {
               <div
                 key={etab.id}
                 className={`p-4 rounded-lg border w-full break-words ${
-                  isDark
-                    ? "border-gray-300 bg-gray-100"
-                    : "border-gray-600 bg-gray-800"
+                  isDark ? "border-gray-300 bg-gray-100" : "border-gray-600 bg-gray-800"
                 } shadow`}
               >
                 <h2 className="text-lg font-semibold mb-1 break-words">
                   {etab.nom}
                 </h2>
-                <p>
-                  <strong>Type:</strong> {etab.type}
-                </p>
-                <p>
-                  <strong>Ville:</strong> {etab.ville}
-                </p>
-                <p>
-                  <strong>Âge:</strong> {etab.age_min} - {etab.age_max} ans
-                </p>
+                <p><strong>Type:</strong> {etab.type}</p>
+                <p><strong>Ville:</strong> {etab.ville}</p>
+                <p><strong>Âge:</strong> {etab.age_min} - {etab.age_max} ans</p>
                 {etab.site_web && (
                   <p>
-                    <a
-                      href={etab.site_web}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="underline text-blue-600"
-                    >
+                    <a href={etab.site_web} target="_blank" rel="noopener noreferrer" className="underline text-blue-600">
                       Site Web
                     </a>
                   </p>
                 )}
                 {etab.google_maps && (
                   <p>
-                    <a
-                      href={etab.google_maps}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="underline text-green-600"
-                    >
+                    <a href={etab.google_maps} target="_blank" rel="noopener noreferrer" className="underline text-green-600">
                       Google Maps
                     </a>
                   </p>
@@ -182,9 +162,7 @@ function Search({ isDark }: SearchProps) {
         {!loading && justification && (
           <div
             className={`rounded-md border p-4 mb-6 mt-6 ${
-              isDark
-                ? "border-gray-300 bg-gray-50 text-[#1d283a]"
-                : "border-gray-600 bg-gray-900"
+              isDark ? "border-gray-300 bg-gray-50 text-[#1d283a]" : "border-gray-600 bg-gray-900"
             }`}
           >
             <h3 className="font-semibold mb-2">Justification :</h3>
