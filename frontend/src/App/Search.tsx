@@ -39,7 +39,6 @@ function Search({ isDark }: SearchProps) {
       });
 
       const data = await res.json();
-      console.log("📦 Données reçues :", data);
 
       setEtablissements(data.resultats || []);
       setJustification(data.justification || "Aucune justification fournie.");
@@ -59,16 +58,17 @@ function Search({ isDark }: SearchProps) {
 
   return (
     <div
-      className={`font-[Outfit] w-full h-[calc(100vh-68px-68px)] flex flex-col items-center justify-center transition ${
+      className={`font-[Outfit] w-full min-h-screen overflow-x-hidden flex flex-col items-center justify-start transition ${
         isDark ? "bg-white text-[#1d283a]" : "bg-[#040712] text-white"
       }`}
     >
       <div className="items-center w-full max-w-[990px] px-4">
-        {/* ❌ En-tête + input masqués si une réponse a été reçue */}
         {!hasResponse && !loading && (
           <>
             <div className="text-center p-8">
-              <h1 className="text-4xl sm:text-6xl font-bold mb-1">Rechercher des Etablissements</h1>
+              <h1 className="text-4xl sm:text-6xl font-bold mb-1">
+                Rechercher des Etablissements
+              </h1>
               <h1 className="text-3xl sm:text-5xl font-bold mb-6 underline underline-offset-4 decoration-[#9ca3af]">
                 Plus simplement ⚡️
               </h1>
@@ -77,7 +77,9 @@ function Search({ isDark }: SearchProps) {
             <div className="flex justify-center mt-2 mb-6 px-4">
               <div
                 className={`flex items-center px-4 py-2 rounded-full w-full max-w-[600px] sm:max-w-[500px] max-[420px]:max-w-[90%] border ${
-                  isDark ? "bg-[#e5e7eb] border-[#9ca3af]" : "bg-[#e5e7eb] border-transparent"
+                  isDark
+                    ? "bg-[#e5e7eb] border-[#9ca3af]"
+                    : "bg-[#e5e7eb] border-transparent"
                 }`}
               >
                 <input
@@ -87,7 +89,9 @@ function Search({ isDark }: SearchProps) {
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Votre recherche..."
                   className={`flex-grow bg-transparent outline-none text-base ${
-                    isDark ? "text-[#1d283a] placeholder-gray-400" : "text-[#1d283a] placeholder-gray-600"
+                    isDark
+                      ? "text-[#1d283a] placeholder-gray-400"
+                      : "text-[#1d283a] placeholder-gray-600"
                   }`}
                   disabled={loading}
                 />
@@ -102,7 +106,13 @@ function Search({ isDark }: SearchProps) {
                       : "bg-[#c0c0c0] hover:bg-[#9ca3af] cursor-pointer"
                   }`}
                 >
-                  <span className={`text-lg ${isDark ? "text-white" : "text-black"}`}>↑</span>
+                  <span
+                    className={`text-lg ${
+                      isDark ? "text-white" : "text-black"
+                    }`}
+                  >
+                    ↑
+                  </span>
                 </button>
               </div>
             </div>
@@ -125,30 +135,49 @@ function Search({ isDark }: SearchProps) {
           </div>
         )}
 
-        {/* Résultats des établissements */}
         {etablissements.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
             {etablissements.map((etab) => (
               <div
                 key={etab.id}
-                className={`p-4 rounded-lg border ${
-                  isDark ? "border-gray-300 bg-gray-100" : "border-gray-600 bg-gray-800"
+                className={`p-4 rounded-lg border w-full break-words ${
+                  isDark
+                    ? "border-gray-300 bg-gray-100"
+                    : "border-gray-600 bg-gray-800"
                 } shadow`}
               >
-                <h2 className="text-xl font-semibold mb-1">{etab.nom}</h2>
-                <p><strong>Type:</strong> {etab.type}</p>
-                <p><strong>Ville:</strong> {etab.ville}</p>
-                <p><strong>Âge:</strong> {etab.age_min} - {etab.age_max} ans</p>
+                <h2 className="text-lg font-semibold mb-1 break-words">
+                  {etab.nom}
+                </h2>
+                <p>
+                  <strong>Type:</strong> {etab.type}
+                </p>
+                <p>
+                  <strong>Ville:</strong> {etab.ville}
+                </p>
+                <p>
+                  <strong>Âge:</strong> {etab.age_min} - {etab.age_max} ans
+                </p>
                 {etab.site_web && (
                   <p>
-                    <a href={etab.site_web} target="_blank" rel="noopener noreferrer" className="underline text-blue-600">
+                    <a
+                      href={etab.site_web}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline text-blue-600"
+                    >
                       Site Web
                     </a>
                   </p>
                 )}
                 {etab.google_maps && (
                   <p>
-                    <a href={etab.google_maps} target="_blank" rel="noopener noreferrer" className="underline text-green-600">
+                    <a
+                      href={etab.google_maps}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline text-green-600"
+                    >
                       Google Maps
                     </a>
                   </p>
@@ -158,17 +187,19 @@ function Search({ isDark }: SearchProps) {
           </div>
         )}
 
-        {/* Justification toujours affichée si dispo */}
         {!loading && justification && (
-          <div className={`rounded-md border p-4 mb-6 ${
-            isDark ? "border-gray-300 bg-gray-50 text-[#1d283a]" : "border-gray-600 bg-gray-900"
-          }`}>
+          <div
+            className={`rounded-md border p-4 mb-6 ${
+              isDark
+                ? "border-gray-300 bg-gray-50 text-[#1d283a]"
+                : "border-gray-600 bg-gray-900"
+            }`}
+          >
             <h3 className="font-semibold mb-2">Justification :</h3>
             <p>{justification}</p>
           </div>
         )}
 
-        {/* Bouton "refaire une recherche" */}
         {hasResponse && !loading && (
           <div className="mt-6 text-center">
             <button
