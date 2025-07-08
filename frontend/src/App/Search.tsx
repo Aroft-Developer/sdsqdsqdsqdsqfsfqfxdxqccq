@@ -23,7 +23,7 @@ function Search({ isDark }: SearchProps) {
 
   const isDisabled = search.trim().length === 0 || loading;
 
-    const handleSend = async () => {
+  const handleSend = async () => {
     if (search.trim() === "") return;
 
     setLoading(true);
@@ -41,7 +41,7 @@ function Search({ isDark }: SearchProps) {
       console.log("📦 Données reçues :", data);
 
       setEtablissements(data.resultats || []);
-      setJustification("Voici les établissements recommandés selon votre situation.");
+      setJustification(data.justification || "Aucune justification fournie.");
     } catch (error) {
       console.error(error);
       setJustification("Une erreur est survenue lors de la requête.");
@@ -74,7 +74,8 @@ function Search({ isDark }: SearchProps) {
 
         {loading && (
           <div className="flex justify-center items-center mb-6 text-lg font-semibold gap-2">
-            Chargement... <svg
+            Chargement...
+            <svg
               xmlns="http://www.w3.org/2000/svg"
               className={`animate-spin w-6 h-6 ${
                 isDark ? "text-[#1d283a]" : "text-white"
@@ -87,6 +88,7 @@ function Search({ isDark }: SearchProps) {
           </div>
         )}
 
+        {/* Résultats des établissements */}
         {etablissements.length > 0 && (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
@@ -118,32 +120,37 @@ function Search({ isDark }: SearchProps) {
                 </div>
               ))}
             </div>
-
-            <div className={`rounded-md border p-4 ${
-              isDark ? "border-gray-300 bg-gray-50 text-[#1d283a]" : "border-gray-600 bg-gray-900"
-            }`}>
-              <h3 className="font-semibold mb-2">Justification :</h3>
-              <p>{justification}</p>
-            </div>
-
-            {/* Bouton pour refaire une recherche */}
-            <div className="mt-6 text-center">
-              <button
-                onClick={handleReset}
-                className={`px-6 py-2 rounded-full font-semibold transition ease-in-out duration-300 border ${
-                  isDark
-                    ? "bg-[#1d283a] text-white hover:scale-105 cursor-pointer"
-                    : "bg-white text-[#1d283a] hover:scale-105 cursor-pointer"
-                }`}
-              >
-                Faire une nouvelle recherche
-              </button>
-            </div>
           </>
         )}
 
-        {/* Barre de recherche visible uniquement si pas de résultats */}
-        {!etablissements.length && (
+        {/* Justification affichée même si pas de résultats */}
+        {!loading && justification && (
+          <div className={`rounded-md border p-4 mb-6 ${
+            isDark ? "border-gray-300 bg-gray-50 text-[#1d283a]" : "border-gray-600 bg-gray-900"
+          }`}>
+            <h3 className="font-semibold mb-2">Justification :</h3>
+            <p>{justification}</p>
+          </div>
+        )}
+
+        {/* Bouton pour refaire une recherche */}
+        {(etablissements.length > 0 || justification) && !loading && (
+          <div className="mt-6 text-center">
+            <button
+              onClick={handleReset}
+              className={`px-6 py-2 rounded-full font-semibold transition ease-in-out duration-300 border ${
+                isDark
+                  ? "bg-[#1d283a] text-white hover:scale-105 cursor-pointer"
+                  : "bg-white text-[#1d283a] hover:scale-105 cursor-pointer"
+              }`}
+            >
+              Faire une nouvelle recherche
+            </button>
+          </div>
+        )}
+
+        {/* Champ de recherche visible si pas de résultats */}
+        {!etablissements.length && !loading && (
           <div className="flex justify-center mt-2 mb-6 px-4">
             <div
               className={`flex items-center px-4 py-2 rounded-full w-full max-w-[600px] sm:max-w-[500px] max-[420px]:max-w-[90%] border ${
@@ -183,4 +190,3 @@ function Search({ isDark }: SearchProps) {
 }
 
 export default Search;
-
