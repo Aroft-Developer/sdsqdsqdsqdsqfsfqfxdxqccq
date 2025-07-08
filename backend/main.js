@@ -12,6 +12,13 @@ app.use(cors({
 
 app.use(express.json());
 
+setInterval(() => {
+  fetch("https://project-cwgk.onrender.com")
+    .then(() => console.log("Ping sent"))
+    .catch(() => console.log("Ping failed"));
+}, 5 * 60 * 1000); // Toutes les 5 min
+
+
 // Charger les établissements
 const fullData = JSON.parse(fs.readFileSync("./resultats_ime.json", "utf-8"));
 
