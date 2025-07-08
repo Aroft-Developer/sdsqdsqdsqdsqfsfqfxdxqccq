@@ -61,22 +61,22 @@ function Search({ isDark }: SearchProps) {
       className={`font-[Outfit] w-full h-[calc(100vh-68px-68px)] flex flex-col items-center transition ${
         isDark ? "bg-white text-[#1d283a]" : "bg-[#040712] text-white"
       }`}
-      style={{ paddingTop: "16px", paddingBottom: "16px" }} // espace en haut et bas sans scroll
+      style={{ paddingTop: "16px", paddingBottom: "16px" }}
     >
-      <div className="items-center w-full max-w-[990px] px-4 flex flex-col">
-        {/* ❌ En-tête + input masqués si une réponse a été reçue */}
+      <div className="items-center w-full max-w-[990px] px-4 flex flex-col h-full">
+        {/* Bloc Recherche centré verticalement et horizontalement */}
         {!hasResponse && !loading && (
-          <>
-            <div className="text-center p-8 w-full">
+          <div className="flex flex-col justify-center items-center flex-grow w-full">
+            <div className="text-center p-8">
               <h1 className="text-4xl sm:text-6xl font-bold mb-1">Rechercher des Etablissements</h1>
               <h1 className="text-3xl sm:text-5xl font-bold mb-6 underline underline-offset-4 decoration-[#9ca3af]">
                 Plus simplement ⚡️
               </h1>
             </div>
 
-            <div className="flex justify-center mt-2 mb-6 px-4 w-full">
+            <div className="flex justify-center px-4 w-full max-w-[600px] sm:max-w-[500px] max-[420px]:max-w-[90%]">
               <div
-                className={`flex items-center px-4 py-2 rounded-full w-full max-w-[600px] sm:max-w-[500px] max-[420px]:max-w-[90%] border ${
+                className={`flex items-center px-4 py-2 rounded-full w-full border ${
                   isDark ? "bg-[#e5e7eb] border-[#9ca3af]" : "bg-[#e5e7eb] border-transparent"
                 }`}
               >
@@ -106,7 +106,7 @@ function Search({ isDark }: SearchProps) {
                 </button>
               </div>
             </div>
-          </>
+          </div>
         )}
 
         {loading && (
