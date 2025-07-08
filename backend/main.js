@@ -2,13 +2,17 @@ import express from "express"; import cors from "cors"; import fs from "fs"; imp
 
 const app = express();
 
-// ✅ Autorise uniquement ton frontend Vercel app.use( cors({ origin: "https://project-virid-alpha.vercel.app" }) ); app.use(express.json());
+// ✅ Autorise uniquement ton frontend Vercel 
+app.use( cors({ origin: "https://project-virid-alpha.vercel.app" }) ); app.use(express.json());
 
-// ✅ Ping toutes les 5 minutes pour garder Render réveillé setInterval(() => { fetch("https://project-cwgk.onrender.com") .then(() => console.log("✅ Ping sent to keep alive")) .catch(() => console.log("❌ Ping failed")); }, 5 * 60 * 1000);
+// ✅ Ping toutes les 5 minutes pour garder Render réveillé 
+setInterval(() => { fetch("https://project-cwgk.onrender.com") .then(() => console.log("✅ Ping sent to keep alive")) .catch(() => console.log("❌ Ping failed")); }, 5 * 60 * 1000);
 
-// ✅ Chargement des établissements const fullData = JSON.parse(fs.readFileSync("./resultats_ime.json", "utf-8")); const etablissements = fullData.map((e) => ({ id: String(e.id), nom: e.nom || "Nom inconnu", type: e.type || "Type inconnu", age_min: e.age_min || 0, age_max: e.age_max || 21, ville: e.ville || "Ville inconnue", site_web: e.url_source || "", google_maps: e.google_maps || "", }));
+// ✅ Chargement des établissements 
+const fullData = JSON.parse(fs.readFileSync("./resultats_ime.json", "utf-8")); const etablissements = fullData.map((e) => ({ id: String(e.id), nom: e.nom || "Nom inconnu", type: e.type || "Type inconnu", age_min: e.age_min || 0, age_max: e.age_max || 21, ville: e.ville || "Ville inconnue", site_web: e.url_source || "", google_maps: e.google_maps || "", }));
 
-// 🔁 Endpoint /conseil via GROQ API app.post("/conseil", async (req, res) => { try { const situation = req.body.text; if (!situation) return res.status(400).json({ error: "situation manquante" });
+// 🔁 Endpoint /conseil via GROQ API 
+app.post("/conseil", async (req, res) => { try { const situation = req.body.text; if (!situation) return res.status(400).json({ error: "situation manquante" });
 
 const prompt = `Tu es un éducateur spécialisé expérimenté qui échange avec un collègue éducateur spécialisé. \nDans le cadre de ton métier, analyse la situation suivante : "${situation}".\nFournis un conseil professionnel, clair, structuré et orienté solution, destiné à un éducateur spécialisé.\nLe conseil doit comporter entre 10 et 20 lignes, être pragmatique, éviter les généralités, et inclure des pistes d'intervention concrètes, ainsi que des points d'attention spécifiques à cette situation.\nTu peux évoquer les démarches à envisager, les acteurs à mobiliser, et les risques à surveiller.`;
 
@@ -33,7 +37,8 @@ res.json({ reponse: responseText });
 
 } catch (err) { console.error("❌ Erreur serveur (conseil) :", err); res.status(500).json({ error: "Erreur serveur" }); } });
 
-// 🔁 Endpoint /analyse via GROQ API app.post("/analyse", async (req, res) => { try { const userRequest = req.body.text; if (!userRequest) return res.status(400).json({ error: "texte manquante" });
+// 🔁 Endpoint /analyse via GROQ API 
+app.post("/analyse", async (req, res) => { try { const userRequest = req.body.text; if (!userRequest) return res.status(400).json({ error: "texte manquante" });
 
 const etabsLimites = etablissements.slice(0, 40);
 
