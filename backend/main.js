@@ -37,7 +37,7 @@ const openai = new OpenAI({
 });
 
 // ✅ Endpoint /conseil
-aapp.post("/conseil", async (req, res) => {
+app.post("/conseil", async (req, res) => {
   try {
     const situation = req.body.text;
     if (!situation) return res.status(400).json({ error: "situation manquante" });
