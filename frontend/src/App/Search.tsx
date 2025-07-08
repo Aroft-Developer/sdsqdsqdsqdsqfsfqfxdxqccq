@@ -22,7 +22,7 @@ function Search({ isDark }: SearchProps) {
   const [loading, setLoading] = useState(false);
 
   const isDisabled = search.trim().length === 0 || loading;
-  const hasResponse = !!justification || établissements.length > 0;
+  const hasResponse = !!justification || etablissements.length > 0;
 
   const handleSend = async () => {
     if (search.trim() === "") return;
