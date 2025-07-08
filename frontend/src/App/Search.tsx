@@ -58,11 +58,11 @@ function Search({ isDark }: SearchProps) {
 
   return (
     <div
-      className={`font-[Outfit] w-full min-h-screen overflow-x-hidden flex flex-col items-center justify-start transition ${
-        isDark ? "bg-white text-[#1d283a]" : "bg-[#040712] text-white"
-      }`}
+      className={`font-[Outfit] w-full min-h-screen overflow-x-hidden flex flex-col items-center ${
+        !hasResponse && !loading ? "justify-center" : "justify-start"
+      } transition ${isDark ? "bg-white text-[#1d283a]" : "bg-[#040712] text-white"}`}
     >
-      <div className="items-center w-full max-w-[990px] px-4">
+      <div className="items-center w-full max-w-[990px] px-4 pt-4">
         {!hasResponse && !loading && (
           <>
             <div className="text-center p-8">
@@ -77,9 +77,7 @@ function Search({ isDark }: SearchProps) {
             <div className="flex justify-center mt-2 mb-6 px-4">
               <div
                 className={`flex items-center px-4 py-2 rounded-full w-full max-w-[600px] sm:max-w-[500px] max-[420px]:max-w-[90%] border ${
-                  isDark
-                    ? "bg-[#e5e7eb] border-[#9ca3af]"
-                    : "bg-[#e5e7eb] border-transparent"
+                  isDark ? "bg-[#e5e7eb] border-[#9ca3af]" : "bg-[#e5e7eb] border-transparent"
                 }`}
               >
                 <input
@@ -106,13 +104,7 @@ function Search({ isDark }: SearchProps) {
                       : "bg-[#c0c0c0] hover:bg-[#9ca3af] cursor-pointer"
                   }`}
                 >
-                  <span
-                    className={`text-lg ${
-                      isDark ? "text-white" : "text-black"
-                    }`}
-                  >
-                    ↑
-                  </span>
+                  <span className={`text-lg ${isDark ? "text-white" : "text-black"}`}>↑</span>
                 </button>
               </div>
             </div>
@@ -120,7 +112,7 @@ function Search({ isDark }: SearchProps) {
         )}
 
         {loading && (
-          <div className="flex justify-center items-center mb-6 text-lg font-semibold gap-2">
+          <div className="flex justify-center items-center my-20 text-lg font-semibold gap-2">
             Chargement...
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -136,7 +128,7 @@ function Search({ isDark }: SearchProps) {
         )}
 
         {etablissements.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6 mt-8">
             {etablissements.map((etab) => (
               <div
                 key={etab.id}
@@ -189,7 +181,7 @@ function Search({ isDark }: SearchProps) {
 
         {!loading && justification && (
           <div
-            className={`rounded-md border p-4 mb-6 ${
+            className={`rounded-md border p-4 mb-6 mt-6 ${
               isDark
                 ? "border-gray-300 bg-gray-50 text-[#1d283a]"
                 : "border-gray-600 bg-gray-900"
@@ -201,7 +193,7 @@ function Search({ isDark }: SearchProps) {
         )}
 
         {hasResponse && !loading && (
-          <div className="mt-6 text-center">
+          <div className="mt-6 mb-12 text-center">
             <button
               onClick={handleReset}
               className={`px-6 py-2 rounded-full font-semibold transition ease-in-out duration-300 border ${
