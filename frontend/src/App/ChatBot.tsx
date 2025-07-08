@@ -40,16 +40,15 @@ function Chatbot({ isDark }: ChatbotProps) {
 
   return (
     <div
-      className={`font-[Outfit] w-full min-h-screen overflow-x-hidden px-4 flex flex-col items-center ${
-        !reponse && !loading ? "justify-center" : "justify-start"
-      } ${isDark ? "bg-white text-[#1d283a]" : "bg-[#040712] text-white"}`}
+      className={`font-[Outfit] w-full h-[calc(100vh-68px)] overflow-hidden px-4 py-8 flex flex-col items-center justify-center ${
+        isDark ? "bg-white text-[#1d283a]" : "bg-[#040712] text-white"
+      }`}
     >
-      <div className="w-full max-w-2xl mt-8">
+      <div className="w-full max-w-2xl">
         <h1 className="text-3xl sm:text-4xl font-bold mb-6 text-center">
           Chatbot ✏️
         </h1>
 
-        {/* Champ de saisie et bouton seulement si pas encore de réponse */}
         {!reponse && (
           <>
             <textarea
@@ -92,7 +91,6 @@ function Chatbot({ isDark }: ChatbotProps) {
           </>
         )}
 
-        {/* Affichage de la réponse */}
         {reponse && (
           <div className="flex flex-col items-center">
             <div
@@ -106,7 +104,7 @@ function Chatbot({ isDark }: ChatbotProps) {
 
             <button
               onClick={handleReset}
-              className={`px-6 py-2 mb-12 rounded-full font-semibold transition ease-in-out duration-300 border border-[#1d283a] ${
+              className={`px-6 py-2 rounded-full font-semibold transition ease-in-out duration-300 border border-[#1d283a] ${
                 isDark
                   ? "bg-[#1d283a] text-white hover:scale-105 cursor-pointer"
                   : "bg-white text-[#1d283a] hover:scale-105 cursor-pointer"
