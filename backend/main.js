@@ -1,5 +1,6 @@
 // ✅ main.js
 import express from "express";
+import axios from "axios";
 import cors from "cors";
 import fs from "fs";
 import Groq from "groq-sdk";
@@ -103,6 +104,42 @@ app.post("/analyse", async (req, res) => {
 
   } catch (err) {
     console.error("❌ Erreur serveur (/analyse) :", err);
+    res.status(500).json({ error: "Erreur serveur" });
+  }
+});
+
+app.post("/conseil", async (req, res) => {
+  try {
+    const situation = req.body.text;
+    if (!situation) return res.status(400).json({ error: "situation manquante" });
+
+    const prompt = `Tu es un éducateur spécialisé expérimenté qui échange avec un collègue éducateur spécialisé. 
+Dans le cadre de ton métier, analyse la situation suivante : "${situation}".
+Fournis un conseil professionnel, clair, structuré et orienté solution, destiné à un éducateur spécialisé.
+Le conseil doit comporter entre 10 et 20 lignes, être pragmatique, éviter les généralités, et inclure des pistes d'intervention concrètes, ainsi que des points d'attention spécifiques à cette situation. 
+Tu peux évoquer les démarches à envisager, les acteurs à mobiliser, et les risques à surveiller, toujours dans une optique de soutien efficace au jeune.`;
+
+    const completion = await axios.post(
+      "https://api.groq.com/openai/v1/chat/completions",
+      {
+        model: "llama3-70b-8192",
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.7,
+        max_tokens: 700,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${process.env.GROQ_API_KEY}`, // 🔐 Place ta clé Groq ici
+        },
+      }
+    );
+
+    const responseText = completion.data.choices[0].message.content.trim();
+    res.json({ reponse: responseText });
+
+  } catch (err) {
+    console.error("❌ Erreur serveur (conseil) :", err);
     res.status(500).json({ error: "Erreur serveur" });
   }
 });
