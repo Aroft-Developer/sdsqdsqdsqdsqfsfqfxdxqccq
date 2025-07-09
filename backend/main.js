@@ -64,7 +64,7 @@ Ne retourne que le JSON. Aucun texte avant ou après.`;
 
     try {
       const completion = await groq.chat.completions.create({
-        model: "mixtral-8x7b-32768",
+        model: "llama3-70b-8192",
         messages: [{ role: "user", content: prompt }],
         temperature: 0.7,
         max_tokens: 1100,
