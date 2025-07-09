@@ -80,7 +80,7 @@ Si aucun établissement ne correspond, renvoie uniquement :
 
 Ne mets aucun texte AVANT ou APRÈS ce JSON. Juste le JSON pur.
 Remplace les valeurs manquantes par "Inconnu".
-``;
+`;
 
     try {
       const completion = await groq.chat.completions.create({
