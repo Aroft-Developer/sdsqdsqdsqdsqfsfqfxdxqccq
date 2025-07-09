@@ -58,9 +58,9 @@ function Search({ isDark }: SearchProps) {
 
   return (
     <div
-      className={`font-[Outfit] w-full h-[calc(100vh-68px-68px)] flex flex-col items-center transition ${
+      className={`font-[Outfit] w-full min-h-screen flex flex-col items-center transition ${
         isDark ? "bg-white text-[#1d283a]" : "bg-[#040712] text-white"
-      } pb-8 sm:pb-4`}
+      } pb-4 mb-[68px] sm:mb-0`}
       style={{ paddingTop: "16px" }}
     >
       <div className="items-center w-full max-w-[990px] px-4 flex flex-col h-full">
