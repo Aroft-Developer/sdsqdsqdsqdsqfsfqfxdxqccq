@@ -58,26 +58,27 @@ function Search({ isDark }: SearchProps) {
 
   return (
     <div
-      className={`font-[Outfit] w-full min-h-screen flex flex-col items-center overflow-y-auto transition
-        ${isDark ? "bg-white text-[#1d283a]" : "bg-[#040712] text-white"}
-        pt-4 max-sm:pb-32`}
+      className={font-[Outfit] w-full h-[calc(100vh-68px-68px)] flex flex-col items-center transition ${
+        isDark ? "bg-white text-[#1d283a]" : "bg-[#040712] text-white"
+      }}
+      style={{ paddingTop: "16px", paddingBottom: "16px" }}
     >
-      <div className="items-center w-full max-w-[990px] px-4 flex flex-col">
-        {/* Bloc Recherche centré */}
+      <div className="items-center w-full max-w-[990px] px-4 flex flex-col h-full">
+        {/* Bloc Recherche centré verticalement et horizontalement */}
         {!hasResponse && !loading && (
-          <div className="flex flex-col justify-center items-center w-full mt-10 mb-12">
+          <div className="flex flex-col justify-center items-center flex-grow w-full">
             <div className="text-center p-8">
               <h1 className="text-4xl sm:text-6xl font-bold mb-1">Rechercher des Etablissements</h1>
-              <h2 className="text-3xl sm:text-5xl font-bold mb-6 underline underline-offset-4 decoration-[#9ca3af]">
+              <h1 className="text-3xl sm:text-5xl font-bold mb-6 underline underline-offset-4 decoration-[#9ca3af]">
                 Plus simplement ⚡️
-              </h2>
+              </h1>
             </div>
 
-            {/* Input + bouton */}
+            {/* Input + bouton intégré */}
             <div
-              className={`flex items-center w-full max-w-[600px] sm:max-w-[500px] max-[420px]:max-w-[90%] rounded-full border px-4 py-2 ${
+              className={flex items-center w-full max-w-[600px] sm:max-w-[500px] max-[420px]:max-w-[90%] rounded-full border px-4 py-2 ${
                 isDark ? "bg-[#e5e7eb] border-[#9ca3af]" : "bg-[#e5e7eb] border-transparent"
-              }`}
+              }}
             >
               <input
                 type="text"
@@ -86,95 +87,115 @@ function Search({ isDark }: SearchProps) {
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Votre recherche..."
                 disabled={loading}
-                className={`flex-grow bg-transparent outline-none text-base max-h-10 border-none pr-0 ${
+                className={flex-grow bg-transparent outline-none text-base max-h-10 border-none pr-0 ${
                   isDark ? "text-[#1d283a] placeholder-gray-400" : "text-[#1d283a] placeholder-gray-600"
-                }`}
+                }}
+                style={{ minHeight: "36px" }}
               />
               <button
                 onClick={handleSend}
                 disabled={isDisabled}
                 type="button"
                 aria-label="Envoyer"
-                className={`flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-r-full transition ${
+                className={flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-r-full transition ${
                   isDisabled
                     ? "bg-gray-400 cursor-not-allowed"
                     : isDark
                     ? "bg-[#1d283a] hover:bg-[#1d283a99] cursor-pointer"
                     : "bg-[#c0c0c0] hover:bg-[#9ca3af] cursor-pointer"
-                }`}
+                }}
               >
-                <span className={`text-lg ${isDark ? "text-white" : "text-black"}`}>↑</span>
+                <span className={text-lg ${isDark ? "text-white" : "text-black"}}>↑</span>
               </button>
             </div>
           </div>
         )}
 
         {loading && (
-          <div className="flex flex-col justify-center items-center mb-6 text-lg font-semibold gap-2 mt-10">
-            <div className="flex items-center gap-2">
-              Chargement...
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className={`animate-spin w-6 h-6 ${isDark ? "text-[#1d283a]" : "text-white"}`}
-                fill="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path d="M19.07 4.93a9.9 9.9 0 0 0-3.18-2.14 10.12 10.12 0 0 0-7.79 0c-1.19.5-2.26 1.23-3.18 2.14S3.28 6.92 2.78 8.11A9.95 9.95 0 0 0 1.99 12h2c0-1.08.21-2.13.63-3.11.4-.95.98-1.81 1.72-2.54.73-.74 1.59-1.31 2.54-1.71 1.97-.83 4.26-.83 6.23 0 .95.4 1.81.98 2.54 1.72.17.17.33.34.48.52L16 9.01h6V3l-2.45 2.45c-.15-.18-.31-.36-.48-.52M19.37 15.11c-.4.95-.98 1.81-1.72 2.54-.73.74-1.59 1.31-2.54 1.71-1.97.83-4.26.83-6.23 0-.95-.4-1.81-.98-2.54-1.72-.17-.17-.33-.34-.48-.52l2.13-2.13H2v6l2.45-2.45c.15.18.31.36.48.52.92.92 1.99 1.64 3.18 2.14 1.23.52 2.54.79 3.89.79s2.66-.26 3.89-.79c1.19-.5 2.26-1.23 3.18-2.14s1.64-1.99 2.14-3.18c.52-1.23.79-2.54.79-3.89h-2c0 1.08-.21 2.13-.63 3.11Z" />
-              </svg>
-            </div>
-            <p className="text-base font-normal mt-2 text-center">
-              Cette opération peut durer quelques secondes à quelques minutes...
-            </p>
+          <div className="flex justify-center items-center mb-6 text-lg font-semibold gap-2">
+            Chargement...
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className={animate-spin w-6 h-6 ${isDark ? "text-[#1d283a]" : "text-white"}}
+              fill="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path d="M19.07 4.93a9.9 9.9 0 0 0-3.18-2.14 10.12 10.12 0 0 0-7.79 0c-1.19.5-2.26 1.23-3.18 2.14S3.28 6.92 2.78 8.11A9.95 9.95 0 0 0 1.99 12h2c0-1.08.21-2.13.63-3.11.4-.95.98-1.81 1.72-2.54.73-.74 1.59-1.31 2.54-1.71 1.97-.83 4.26-.83 6.23 0 .95.4 1.81.98 2.54 1.72.17.17.33.34.48.52L16 9.01h6V3l-2.45 2.45c-.15-.18-.31-.36-.48-.52M19.37 15.11c-.4.95-.98 1.81-1.72 2.54-.73.74-1.59 1.31-2.54 1.71-1.97.83-4.26.83-6.23 0-.95-.4-1.81-.98-2.54-1.72-.17-.17-.33-.34-.48-.52l2.13-2.13H2v6l2.45-2.45c.15.18.31.36.48.52.92.92 1.99 1.64 3.18 2.14 1.23.52 2.54.79 3.89.79s2.66-.26 3.89-.79c1.19-.5 2.26-1.23 3.18-2.14s1.64-1.99 2.14-3.18c.52-1.23.79-2.54.79-3.89h-2c0 1.08-.21 2.13-.63 3.11Z" />
+            </svg>
           </div>
         )}
 
-        {/* Résultats */}
+        {/* Résultats des établissements */}
         {etablissements.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6 w-full">
             {etablissements.map((etab) => (
               <div
                 key={etab.id}
-                className={`p-4 rounded-lg border shadow-sm ${
+                className={p-4 rounded-lg border ${
                   isDark ? "border-gray-300 bg-gray-100" : "border-gray-600 bg-gray-800"
-                }`}
+                } shadow}
               >
                 <h2 className="text-xl font-semibold mb-1">{etab.nom}</h2>
-                <p><strong>Type:</strong> {etab.type}</p>
-                <p><strong>Ville:</strong> {etab.ville}</p>
-                <p><strong>Âge:</strong> {etab.age_min} - {etab.age_max} ans</p>
+                <p>
+                  <strong>Type:</strong> {etab.type}
+                </p>
+                <p>
+                  <strong>Ville:</strong> {etab.ville}
+                </p>
+                <p>
+                  <strong>Âge:</strong> {etab.age_min} - {etab.age_max} ans
+                </p>
                 {etab.site_web && (
-                  <p><a href={etab.site_web} target="_blank" rel="noopener noreferrer" className="underline text-blue-600">Site Web</a></p>
+                  <p>
+                    <a
+                      href={etab.site_web}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline text-blue-600"
+                    >
+                      Site Web
+                    </a>
+                  </p>
                 )}
                 {etab.google_maps && (
-                  <p><a href={etab.google_maps} target="_blank" rel="noopener noreferrer" className="underline text-green-600">Google Maps</a></p>
+                  <p>
+                    <a
+                      href={etab.google_maps}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline text-green-600"
+                    >
+                      Google Maps
+                    </a>
+                  </p>
                 )}
               </div>
             ))}
           </div>
         )}
 
-        {/* Justification */}
+        {/* Justification toujours affichée si dispo */}
         {!loading && justification && (
           <div
-            className={`rounded-md border p-4 mb-6 w-full ${
+            className={rounded-md border p-4 mb-6 w-full ${
               isDark ? "border-gray-300 bg-gray-50 text-[#1d283a]" : "border-gray-600 bg-gray-900"
-            }`}
+            }}
           >
             <h3 className="font-semibold mb-2">Justification :</h3>
             <p>{justification}</p>
           </div>
         )}
 
-        {/* Bouton refaire une recherche */}
+        {/* Bouton "refaire une recherche" avec marge en bas */}
         {hasResponse && !loading && (
-          <div className="mt-6 mb-8 text-center w-full">
+          <div className="mt-6 mb-6 text-center w-full">
             <button
               onClick={handleReset}
-              className={`px-6 py-2 rounded-full font-semibold transition ease-in-out duration-300 border ${
+              className={px-6 py-2 rounded-full font-semibold transition ease-in-out duration-300 border ${
                 isDark
                   ? "bg-[#1d283a] text-white hover:scale-105 cursor-pointer"
                   : "bg-white text-[#1d283a] hover:scale-105 cursor-pointer"
-              }`}
+              }}
             >
               Faire une nouvelle recherche
             </button>
