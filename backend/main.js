@@ -1,17 +1,14 @@
+// ✅ main.js
 import express from "express";
 import cors from "cors";
 import fs from "fs";
-import axios from "axios";
+import Groq from "groq-sdk";
 
 const app = express();
-
-// ✅ Autorise uniquement ton frontend Vercel
-app.use(
-  cors({ origin: "https://project-virid-alpha.vercel.app" })
-);
+app.use(cors({ origin: "https://project-virid-alpha.vercel.app" }));
 app.use(express.json());
 
-// ✅ Ping toutes les 5 minutes pour garder Render réveillé
+// ✅ Ping toutes les 5 minutes pour Render
 setInterval(() => {
   fetch("https://project-cwgk.onrender.com")
     .then(() => console.log("✅ Ping sent to keep alive"))
@@ -20,7 +17,7 @@ setInterval(() => {
 
 // ✅ Chargement des établissements
 const fullData = JSON.parse(fs.readFileSync("./resultats_ime.json", "utf-8"));
-const etablissements = fullData.map((e) => ({
+const etablissements = fullData.map(e => ({
   id: String(e.id),
   nom: e.nom || "Nom inconnu",
   type: e.type || "Type inconnu",
@@ -28,127 +25,89 @@ const etablissements = fullData.map((e) => ({
   age_max: e.age_max || 21,
   ville: e.ville || "Ville inconnue",
   site_web: e.url_source || "",
-  google_maps: e.google_maps || "",
+  google_maps: e.google_maps || ""
 }));
 
-// 🔁 Endpoint /conseil via GROQ API
-app.post("/conseil", async (req, res) => {
-  try {
-    const situation = req.body.text;
-    if (!situation) return res.status(400).json({ error: "situation manquante" });
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
-    const prompt = `Tu es un éducateur spécialisé expérimenté qui échange avec un collègue éducateur spécialisé. \nDans le cadre de ton métier, analyse la situation suivante : "${situation}".\nFournis un conseil professionnel, clair, structuré et orienté solution, destiné à un éducateur spécialisé.\nLe conseil doit comporter entre 10 et 20 lignes, être pragmatique, éviter les généralités, et inclure des pistes d'intervention concrètes, ainsi que des points d'attention spécifiques à cette situation.\nTu peux évoquer les démarches à envisager, les acteurs à mobiliser, et les risques à surveiller.`;
+async function analyserParMorceaux(situation, etabs) {
+  const CHUNK_SIZE = 40;
+  const resultats = [];
+  let justificationGlobal = "";
 
-    const completion = await axios.post(
-      "https://api.groq.com/openai/v1/chat/completions",
-      {
+  const chunks = [];
+  for (let i = 0; i < etabs.length; i += CHUNK_SIZE) {
+    chunks.push(etabs.slice(i, i + CHUNK_SIZE));
+  }
+
+  for (const chunk of chunks) {
+    const prompt = `
+Tu es un assistant éducatif spécialisé.
+
+Voici une situation : "${situation}"
+
+Voici une liste de ${chunk.length} établissements :
+${JSON.stringify(chunk, null, 2)}
+
+Analyse et sélectionne au maximum 6 établissements pertinents en fonction de la situation (âge, profil, besoin, etc.).
+
+Si aucun ne correspond, réponds :
+{"justification": "Aucun établissement pertinent dans ce groupe."}
+
+Sinon, réponds :
+{
+  "resultats": [ ... ],
+  "justification": "Pourquoi ces établissements sont les meilleurs dans ce groupe."
+}
+
+Ne retourne que le JSON. Aucun texte avant ou après.`;
+
+    try {
+      const completion = await groq.chat.completions.create({
         model: "mixtral-8x7b-32768",
         messages: [{ role: "user", content: prompt }],
         temperature: 0.7,
-        max_tokens: 700,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
-          "Content-Type": "application/json",
-        },
+        max_tokens: 1100,
+      });
+
+      const raw = completion.choices[0].message.content.trim();
+      const match = raw.match(/\{[\s\S]*\}/);
+      if (!match) continue;
+
+      const json = JSON.parse(match[0]);
+
+      if (json.resultats && Array.isArray(json.resultats)) {
+        resultats.push(...json.resultats);
       }
-    );
-
-    const responseText = completion.data.choices[0].message.content.trim();
-    res.json({ reponse: responseText });
-  } catch (err) {
-    console.error("❌ Erreur serveur (conseil) :", err);
-    res.status(500).json({ error: "Erreur serveur" });
+      if (json.justification) {
+        justificationGlobal += "\n" + json.justification;
+      }
+    } catch (e) {
+      console.error("❌ Erreur dans un chunk :", e.message);
+    }
   }
-});
 
-// 🔁 Endpoint /analyse via GROQ API
+  return {
+    resultats: resultats.slice(0, 6),
+    justification: justificationGlobal.trim() || "Analyse effectuée par morceaux.",
+  };
+}
+
 app.post("/analyse", async (req, res) => {
   try {
     const userRequest = req.body.text;
     if (!userRequest) return res.status(400).json({ error: "texte manquante" });
 
-    const etabsLimites = etablissements.slice(0, 40);
+    const resultatFinal = await analyserParMorceaux(userRequest, etablissements);
+    res.json(resultatFinal);
 
-    const prompt = `
-Tu es un assistant éducatif spécialisé.
-
-À partir de cette situation :
-
-"${userRequest}"
-
-Tu dois sélectionner au maximum 6 établissements parmi cette liste, en tenant compte du profil, de l'âge, du type de besoin et des ressources en ligne disponibles.
-
-⚠️ Si la demande n'a aucun rapport avec un placement, un jeune, ou les établissements ci-dessous, tu DOIS renvoyer un objet JSON avec uniquement une clé "justification", sans remplir "resultats".
-
-Liste des établissements :
-${JSON.stringify(etabsLimites, null, 2)}
-
-Réponds STRICTEMENT avec ce format :
-
-{
-  "resultats": [
-    {
-      "id": "string",
-      "nom": "string",
-      "type": "string",
-      "age_min": number,
-      "age_max": number,
-      "ville": "string",
-      "site_web": "string",
-      "google_maps": "string"
-    }
-  ],
-  "justification": "Texte explicatif enrichi avec des informations utiles en ligne sur les établissements proposés"
-}
-
-⚠️ Si aucun établissement ne correspond, renvoie uniquement :
-{
-  "justification": "Explication sur pourquoi aucun établissement ne correspond à cette demande."
-}
-
-⚠️ Ne mets aucun texte AVANT ou APRÈS ce JSON. Juste le JSON pur.
-Remplace les valeurs manquantes par "Inconnu".
-`;
-
-    const completion = await axios.post(
-      "https://api.groq.com/openai/v1/chat/completions",
-      {
-        model: "mixtral-8x7b-32768",
-        messages: [{ role: "user", content: prompt }],
-        temperature: 0.7,
-        max_tokens: 1100,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
-    const rawResponse = completion.data.choices[0].message.content.trim();
-    const match = rawResponse.match(/\{[\s\S]*\}/);
-    if (!match) throw new Error("Aucun JSON détecté dans la réponse");
-
-    const maybeJson = match[0];
-    const parsed = JSON.parse(maybeJson);
-
-    if (!parsed.resultats || !Array.isArray(parsed.resultats) || parsed.resultats.length === 0) {
-      return res.json({
-        resultats: [],
-        justification: parsed.justification || "Aucun établissement ne correspond à cette demande.",
-      });
-    }
-
-    return res.json(parsed);
   } catch (err) {
     console.error("❌ Erreur serveur (/analyse) :", err);
     res.status(500).json({ error: "Erreur serveur" });
   }
 });
 
+// ✅ Port dynamique pour Render
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`🚀 Serveur Express lancé sur le port ${PORT}`);
