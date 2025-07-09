@@ -52,9 +52,6 @@ ${JSON.stringify(chunk, null, 2)}
 
 Si la demande n'a aucun rapport avec un placement, un jeune, ou les établissements ci-dessous, tu DOIS renvoyer un objet JSON avec uniquement une clé "justification", sans remplir "resultats".
 
-Liste des établissements :
-${JSON.stringify(etabsLimites, null, 2)}
-
 Réponds STRICTEMENT avec ce format :
 
 {
