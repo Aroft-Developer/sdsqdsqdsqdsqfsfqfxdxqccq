@@ -50,18 +50,37 @@ Voici une situation : "${situation}"
 Voici une liste de ${chunk.length} établissements :
 ${JSON.stringify(chunk, null, 2)}
 
-Analyse et sélectionne au maximum 6 établissements pertinents en fonction de la situation (âge, profil, besoin, etc.).
+Si la demande n'a aucun rapport avec un placement, un jeune, ou les établissements ci-dessous, tu DOIS renvoyer un objet JSON avec uniquement une clé "justification", sans remplir "resultats".
 
-Si aucun ne correspond, réponds :
-{"justification": "Aucun établissement pertinent dans ce groupe."}
+Liste des établissements :
+${JSON.stringify(etabsLimites, null, 2)}
 
-Sinon, réponds :
+Réponds STRICTEMENT avec ce format :
+
 {
-  "resultats": [ ... ],
-  "justification": "Pourquoi ces établissements sont les meilleurs dans ce groupe."
+  "resultats": [
+    {
+      "id": "string",
+      "nom": "string",
+      "type": "string",
+      "age_min": number,
+      "age_max": number,
+      "ville": "string",
+      "site_web": "string",
+      "google_maps": "string"
+    }
+  ],
+  "justification": "Texte explicatif enrichi avec des informations utiles en ligne sur les établissements proposés"
 }
 
-Ne retourne que le JSON. Aucun texte avant ou après.`;
+Si aucun établissement ne correspond, renvoie uniquement :
+{
+  "justification": "Explication sur pourquoi aucun établissement ne correspond à cette demande."
+}
+
+Ne mets aucun texte AVANT ou APRÈS ce JSON. Juste le JSON pur.
+Remplace les valeurs manquantes par "Inconnu".
+``;
 
     try {
       const completion = await groq.chat.completions.create({
