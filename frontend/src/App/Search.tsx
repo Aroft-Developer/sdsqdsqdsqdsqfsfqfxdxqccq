@@ -58,13 +58,12 @@ function Search({ isDark }: SearchProps) {
 
   return (
     <div
-      className={font-[Outfit] w-full h-[calc(100vh-68px-68px)] flex flex-col items-center transition ${
+      className={`font-[Outfit] w-full h-[calc(100vh-68px-68px)] flex flex-col items-center transition ${
         isDark ? "bg-white text-[#1d283a]" : "bg-[#040712] text-white"
-      }}
-      style={{ paddingTop: "16px", paddingBottom: "16px" }}
+      } pb-8 sm:pb-4`}
+      style={{ paddingTop: "16px" }}
     >
       <div className="items-center w-full max-w-[990px] px-4 flex flex-col h-full">
-        {/* Bloc Recherche centré verticalement et horizontalement */}
         {!hasResponse && !loading && (
           <div className="flex flex-col justify-center items-center flex-grow w-full">
             <div className="text-center p-8">
@@ -74,11 +73,10 @@ function Search({ isDark }: SearchProps) {
               </h1>
             </div>
 
-            {/* Input + bouton intégré */}
             <div
-              className={flex items-center w-full max-w-[600px] sm:max-w-[500px] max-[420px]:max-w-[90%] rounded-full border px-4 py-2 ${
+              className={`flex items-center w-full max-w-[600px] sm:max-w-[500px] max-[420px]:max-w-[90%] rounded-full border px-4 py-2 ${
                 isDark ? "bg-[#e5e7eb] border-[#9ca3af]" : "bg-[#e5e7eb] border-transparent"
-              }}
+              }`}
             >
               <input
                 type="text"
@@ -87,9 +85,9 @@ function Search({ isDark }: SearchProps) {
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Votre recherche..."
                 disabled={loading}
-                className={flex-grow bg-transparent outline-none text-base max-h-10 border-none pr-0 ${
+                className={`flex-grow bg-transparent outline-none text-base max-h-10 border-none pr-0 ${
                   isDark ? "text-[#1d283a] placeholder-gray-400" : "text-[#1d283a] placeholder-gray-600"
-                }}
+                }`}
                 style={{ minHeight: "36px" }}
               />
               <button
@@ -97,15 +95,15 @@ function Search({ isDark }: SearchProps) {
                 disabled={isDisabled}
                 type="button"
                 aria-label="Envoyer"
-                className={flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-r-full transition ${
+                className={`flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-r-full transition ${
                   isDisabled
                     ? "bg-gray-400 cursor-not-allowed"
                     : isDark
                     ? "bg-[#1d283a] hover:bg-[#1d283a99] cursor-pointer"
                     : "bg-[#c0c0c0] hover:bg-[#9ca3af] cursor-pointer"
-                }}
+                }`}
               >
-                <span className={text-lg ${isDark ? "text-white" : "text-black"}}>↑</span>
+                <span className={`text-lg ${isDark ? "text-white" : "text-black"}`}>↑</span>
               </button>
             </div>
           </div>
@@ -116,7 +114,7 @@ function Search({ isDark }: SearchProps) {
             Chargement...
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className={animate-spin w-6 h-6 ${isDark ? "text-[#1d283a]" : "text-white"}}
+              className={`animate-spin w-6 h-6 ${isDark ? "text-[#1d283a]" : "text-white"}`}
               fill="currentColor"
               viewBox="0 0 24 24"
             >
@@ -125,15 +123,14 @@ function Search({ isDark }: SearchProps) {
           </div>
         )}
 
-        {/* Résultats des établissements */}
         {etablissements.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6 w-full">
             {etablissements.map((etab) => (
               <div
                 key={etab.id}
-                className={p-4 rounded-lg border ${
+                className={`p-4 rounded-lg border ${
                   isDark ? "border-gray-300 bg-gray-100" : "border-gray-600 bg-gray-800"
-                } shadow}
+                } shadow`}
               >
                 <h2 className="text-xl font-semibold mb-1">{etab.nom}</h2>
                 <p>
@@ -174,28 +171,26 @@ function Search({ isDark }: SearchProps) {
           </div>
         )}
 
-        {/* Justification toujours affichée si dispo */}
         {!loading && justification && (
           <div
-            className={rounded-md border p-4 mb-6 w-full ${
+            className={`rounded-md border p-4 mb-6 w-full ${
               isDark ? "border-gray-300 bg-gray-50 text-[#1d283a]" : "border-gray-600 bg-gray-900"
-            }}
+            }`}
           >
             <h3 className="font-semibold mb-2">Justification :</h3>
             <p>{justification}</p>
           </div>
         )}
 
-        {/* Bouton "refaire une recherche" avec marge en bas */}
         {hasResponse && !loading && (
           <div className="mt-6 mb-6 text-center w-full">
             <button
               onClick={handleReset}
-              className={px-6 py-2 rounded-full font-semibold transition ease-in-out duration-300 border ${
+              className={`px-6 py-2 rounded-full font-semibold transition ease-in-out duration-300 border ${
                 isDark
                   ? "bg-[#1d283a] text-white hover:scale-105 cursor-pointer"
                   : "bg-white text-[#1d283a] hover:scale-105 cursor-pointer"
-              }}
+              }`}
             >
               Faire une nouvelle recherche
             </button>
