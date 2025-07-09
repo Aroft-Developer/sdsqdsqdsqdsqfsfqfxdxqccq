@@ -58,13 +58,12 @@ function Search({ isDark }: SearchProps) {
 
   return (
     <div
-      className={`font-[Outfit] w-full min-h-screen flex flex-col items-center overflow-y-auto transition ${
+      className={`font-[Outfit] w-full min-h-screen flex flex-col items-center transition ${
         isDark ? "bg-white text-[#1d283a]" : "bg-[#040712] text-white"
       }`}
-      style={{ paddingTop: "16px", paddingBottom: "32px" }}
+      style={{ paddingTop: "16px", paddingBottom: "0px" }} // ✅ Corrigé ici
     >
       <div className="items-center w-full max-w-[990px] px-4 flex flex-col">
-        {/* Bloc Recherche centré */}
         {!hasResponse && !loading && (
           <div className="flex flex-col justify-center items-center w-full mt-10 mb-12">
             <div className="text-center p-8">
@@ -73,8 +72,6 @@ function Search({ isDark }: SearchProps) {
                 Plus simplement ⚡️
               </h2>
             </div>
-
-            {/* Input + bouton */}
             <div
               className={`flex items-center w-full max-w-[600px] sm:max-w-[500px] max-[420px]:max-w-[90%] rounded-full border px-4 py-2 ${
                 isDark ? "bg-[#e5e7eb] border-[#9ca3af]" : "bg-[#e5e7eb] border-transparent"
@@ -129,7 +126,6 @@ function Search({ isDark }: SearchProps) {
           </div>
         )}
 
-        {/* Résultats */}
         {etablissements.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6 w-full">
             {etablissements.map((etab) => (
@@ -154,7 +150,6 @@ function Search({ isDark }: SearchProps) {
           </div>
         )}
 
-        {/* Justification */}
         {!loading && justification && (
           <div
             className={`rounded-md border p-4 mb-6 w-full ${
@@ -166,7 +161,6 @@ function Search({ isDark }: SearchProps) {
           </div>
         )}
 
-        {/* Bouton refaire une recherche */}
         {hasResponse && !loading && (
           <div className="mt-6 mb-8 text-center w-full">
             <button
