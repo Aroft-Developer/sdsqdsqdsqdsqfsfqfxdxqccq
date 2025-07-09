@@ -4,6 +4,7 @@
     "cors": "^2.8.5",
     "express": "^5.1.0",
     "fs": "^0.0.1-security",
+    "groq-sdk": "^0.26.0",
     "openai": "^5.8.2"
   }
 }
