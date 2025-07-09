@@ -58,23 +58,21 @@ function Search({ isDark }: SearchProps) {
 
   return (
     <div
-      className={`font-[Outfit] w-full min-h-screen flex flex-col items-center transition ${
+      className={`font-[Outfit] w-full min-h-screen flex flex-col items-center justify-start ${
         isDark ? "bg-white text-[#1d283a]" : "bg-[#040712] text-white"
-      } pb-4 mb-[68px] sm:mb-0`}
-      style={{ paddingTop: "16px" }}
+      }`}
     >
-      <div className="items-center w-full max-w-[990px] px-4 flex flex-col h-full">
+      <div className="w-full max-w-[990px] px-4 py-6 flex flex-col items-center grow">
+        {/* CENTRÉ quand pas de résultat */}
         {!hasResponse && !loading && (
-          <div className="flex flex-col justify-center items-center flex-grow w-full">
-            <div className="text-center p-8">
-              <h1 className="text-4xl sm:text-6xl font-bold mb-1">Rechercher des Etablissements</h1>
-              <h1 className="text-3xl sm:text-5xl font-bold mb-6 underline underline-offset-4 decoration-[#9ca3af]">
-                Plus simplement ⚡️
-              </h1>
-            </div>
+          <div className="flex flex-col items-center justify-center w-full grow text-center">
+            <h1 className="text-4xl sm:text-6xl font-bold mb-1">Rechercher des Etablissements</h1>
+            <h2 className="text-3xl sm:text-5xl font-bold mb-6 underline underline-offset-4 decoration-[#9ca3af]">
+              Plus simplement ⚡️
+            </h2>
 
             <div
-              className={`flex items-center w-full max-w-[600px] sm:max-w-[500px] max-[420px]:max-w-[90%] rounded-full border px-4 py-2 ${
+              className={`flex items-center w-full max-w-[500px] rounded-full border px-4 py-2 ${
                 isDark ? "bg-[#e5e7eb] border-[#9ca3af]" : "bg-[#e5e7eb] border-transparent"
               }`}
             >
@@ -88,7 +86,6 @@ function Search({ isDark }: SearchProps) {
                 className={`flex-grow bg-transparent outline-none text-base max-h-10 border-none pr-0 ${
                   isDark ? "text-[#1d283a] placeholder-gray-400" : "text-[#1d283a] placeholder-gray-600"
                 }`}
-                style={{ minHeight: "36px" }}
               />
               <button
                 onClick={handleSend}
@@ -110,7 +107,7 @@ function Search({ isDark }: SearchProps) {
         )}
 
         {loading && (
-          <div className="flex justify-center items-center mb-6 text-lg font-semibold gap-2">
+          <div className="flex justify-center items-center mb-6 text-lg font-semibold gap-2 mt-6">
             Chargement...
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -124,7 +121,7 @@ function Search({ isDark }: SearchProps) {
         )}
 
         {etablissements.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6 w-full">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 my-6 w-full">
             {etablissements.map((etab) => (
               <div
                 key={etab.id}
