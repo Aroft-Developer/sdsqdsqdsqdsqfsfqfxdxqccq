@@ -74,7 +74,7 @@ function Chatbot({ isDark }: ChatbotProps) {
                 Chargement...
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className={`animate-spin w-6 h-6 ml-2 ${
+                  className={`animate-spin w-6 h-6 ${
                     isDark ? "text-[#1d283a]" : "text-white"
                   }`}
                   fill="currentColor"
