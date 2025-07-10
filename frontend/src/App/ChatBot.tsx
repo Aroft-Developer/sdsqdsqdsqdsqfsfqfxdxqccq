@@ -40,7 +40,7 @@ function Chatbot({ isDark }: ChatbotProps) {
 
   return (
     <div
-      className={`font-[Outfit] h-[calc(100vh-68px-68px)] w-full flex flex-col items-center justify-center px-4 py-6 ${
+      className={`font-[Outfit] w-full min-h-[calc(100vh-68px-68px)] flex flex-col items-center px-4 py-6 transition ${
         isDark ? "bg-white text-[#1d283a]" : "bg-[#040712] text-white"
       }`}
     >
