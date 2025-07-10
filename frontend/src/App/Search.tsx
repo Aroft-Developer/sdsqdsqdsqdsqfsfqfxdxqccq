@@ -58,7 +58,7 @@ function Search({ isDark }: SearchProps) {
 
   return (
     <div
-      className={`font-[Outfit] w-full h-[calc(100vh-68px-68px)] flex flex-col items-center justify-center transition ${
+      className={`font-[Outfit] w-full min-h-[calc(100vh-68px-68px)] flex flex-col items-center px-4 py-6 transition ${
         isDark ? "bg-white text-[#1d283a]" : "bg-[#040712] text-white"
       }
       sm:h-[calc(100vh-68px-68px)] sm:justify-center
