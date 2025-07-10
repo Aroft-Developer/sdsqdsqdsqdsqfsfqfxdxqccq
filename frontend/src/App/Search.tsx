@@ -58,12 +58,11 @@ function Search({ isDark }: SearchProps) {
 
   return (
     <div
-      className={font-[Outfit] w-full h-[calc(100vh-68px-68px)] flex flex-col items-center justify-center transition ${
+      className={`font-[Outfit] w-full h-[calc(100vh-68px-68px)] flex flex-col items-center justify-center transition ${
         isDark ? "bg-white text-[#1d283a]" : "bg-[#040712] text-white"
-      }}
+      }`}
     >
       <div className="items-center w-full max-w-[990px] px-4">
-        {/* ❌ En-tête + input masqués si une réponse a été reçue */}
         {!hasResponse && !loading && (
           <>
             <div className="text-center p-8">
@@ -75,9 +74,9 @@ function Search({ isDark }: SearchProps) {
 
             <div className="flex justify-center mt-2 mb-6 px-4">
               <div
-                className={flex items-center px-4 py-2 rounded-full w-full max-w-[600px] sm:max-w-[500px] max-[420px]:max-w-[90%] border ${
+                className={`flex items-center px-4 py-2 rounded-full w-full max-w-[600px] sm:max-w-[500px] max-[420px]:max-w-[90%] border ${
                   isDark ? "bg-[#e5e7eb] border-[#9ca3af]" : "bg-[#e5e7eb] border-transparent"
-                }}
+                }`}
               >
                 <input
                   type="text"
@@ -85,23 +84,23 @@ function Search({ isDark }: SearchProps) {
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Votre recherche..."
-                  className={flex-grow bg-transparent outline-none text-base ${
+                  className={`flex-grow bg-transparent outline-none text-base ${
                     isDark ? "text-[#1d283a] placeholder-gray-400" : "text-[#1d283a] placeholder-gray-600"
-                  }}
+                  }`}
                   disabled={loading}
                 />
                 <button
                   onClick={handleSend}
                   disabled={isDisabled}
-                  className={ml-2 w-8 h-8 flex items-center justify-center rounded-full transition ${
+                  className={`ml-2 w-8 h-8 flex items-center justify-center rounded-full transition ${
                     isDisabled
                       ? "bg-gray-400 cursor-not-allowed"
                       : isDark
                       ? "bg-[#1d283a] hover:bg-[#1d283a99] cursor-pointer"
                       : "bg-[#c0c0c0] hover:bg-[#9ca3af] cursor-pointer"
-                  }}
+                  }`}
                 >
-                  <span className={text-lg ${isDark ? "text-white" : "text-black"}}>↑</span>
+                  <span className={`text-lg ${isDark ? "text-white" : "text-black"}`}>↑</span>
                 </button>
               </div>
             </div>
@@ -113,9 +112,9 @@ function Search({ isDark }: SearchProps) {
             Chargement...
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className={animate-spin w-6 h-6 ${
+              className={`animate-spin w-6 h-6 ${
                 isDark ? "text-[#1d283a]" : "text-white"
-              }}
+              }`}
               fill="currentColor"
               viewBox="0 0 24 24"
             >
@@ -124,15 +123,14 @@ function Search({ isDark }: SearchProps) {
           </div>
         )}
 
-        {/* Résultats des établissements */}
         {etablissements.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
             {etablissements.map((etab) => (
               <div
                 key={etab.id}
-                className={p-4 rounded-lg border ${
+                className={`p-4 rounded-lg border ${
                   isDark ? "border-gray-300 bg-gray-100" : "border-gray-600 bg-gray-800"
-                } shadow}
+                } shadow`}
               >
                 <h2 className="text-xl font-semibold mb-1">{etab.nom}</h2>
                 <p><strong>Type:</strong> {etab.type}</p>
@@ -157,26 +155,24 @@ function Search({ isDark }: SearchProps) {
           </div>
         )}
 
-        {/* Justification toujours affichée si dispo */}
         {!loading && justification && (
-          <div className={rounded-md border p-4 mb-6 ${
+          <div className={`rounded-md border p-4 mb-6 ${
             isDark ? "border-gray-300 bg-gray-50 text-[#1d283a]" : "border-gray-600 bg-gray-900"
-          }}>
+          }`}>
             <h3 className="font-semibold mb-2">Justification :</h3>
             <p>{justification}</p>
           </div>
         )}
 
-        {/* Bouton "refaire une recherche" */}
         {hasResponse && !loading && (
           <div className="mt-6 text-center">
             <button
               onClick={handleReset}
-              className={px-6 py-2 rounded-full font-semibold transition ease-in-out duration-300 border ${
+              className={`px-6 py-2 rounded-full font-semibold transition ease-in-out duration-300 border ${
                 isDark
                   ? "bg-[#1d283a] text-white hover:scale-105 cursor-pointer"
                   : "bg-white text-[#1d283a] hover:scale-105 cursor-pointer"
-              }}
+              }`}
             >
               Faire une nouvelle recherche
             </button>
