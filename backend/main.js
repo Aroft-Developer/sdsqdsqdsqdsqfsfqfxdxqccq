@@ -118,23 +118,27 @@ Remplace les valeurs manquantes par "Inconnu".
   };
 }
 
+function normalizeText(str) {
+  return str
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .replace(/[^\w\s]/g, ""); // enlève ponctuation
+}
+
 function filtrerEtablissements({ ville, type, code_postal, mots_cles }) {
   return etablissements.filter((etab) => {
-    // Ville : comparer en insensible à la casse et en normalisant les espaces
+    // Ville : comparer en insensible à la casse et normalisé
     if (ville) {
-      const villeEtab = etab.cp_ville
-        .split(" ")
-        .slice(1)
-        .join(" ")
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/\p{Diacritic}/gu, "");
-      const villeNorm = ville.toLowerCase().normalize("NFD").replace(/\p{Diacritic}/gu, "");
+      const villeEtab = normalizeText(etab.cp_ville.split(" ").slice(1).join(" "));
+      const villeNorm = normalizeText(ville);
       if (!villeEtab.includes(villeNorm)) return false;
     }
-    // Type : insensible à la casse
+    // Type : insensible à la casse, normalisé
     if (type && type !== "") {
-      if (!etab.categorie.toLowerCase().includes(type.toLowerCase())) return false;
+      const catNorm = normalizeText(etab.categorie);
+      const typeNorm = normalizeText(type);
+      if (!catNorm.includes(typeNorm)) return false;
     }
     // Code postal : vérifier uniquement les 2 premiers chiffres
     if (code_postal && code_postal !== "") {
@@ -142,17 +146,10 @@ function filtrerEtablissements({ ville, type, code_postal, mots_cles }) {
     }
     // Mots-clés : chaque mot doit être contenu dans nom, catégorie ou adresse
     if (mots_cles && mots_cles !== "") {
-      const mots = mots_cles.toLowerCase().split(" ");
-      const haystack = (
-        etab.nom +
-        " " +
-        etab.categorie +
-        " " +
-        etab.adresse_complete
-      )
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/\p{Diacritic}/gu, "");
+      const mots = mots_cles.split(" ").map(normalizeText);
+      const haystack = normalizeText(
+        etab.nom + " " + etab.categorie + " " + etab.adresse_complete
+      );
       if (!mots.every((mot) => haystack.includes(mot))) return false;
     }
 
@@ -175,10 +172,8 @@ app.post("/analyse", async (req, res) => {
       });
     }
 
-    // Logs pour debug
     console.log("[Recherche] critères reçus :", { ville, type, code_postal, mots_cles });
 
-    // Filtrage local des établissements
     const filteredEtabs = filtrerEtablissements({ ville, type, code_postal, mots_cles });
 
     console.log("[Recherche] établissements filtrés :", filteredEtabs.length);
@@ -190,7 +185,6 @@ app.post("/analyse", async (req, res) => {
       });
     }
 
-    // Appeler Groq avec situation + établissements + mots clés
     const resultatFinal = await analyserParMorceaux(ville || "Recherche", filteredEtabs, mots_cles || "");
 
     res.json(resultatFinal);
@@ -200,7 +194,7 @@ app.post("/analyse", async (req, res) => {
   }
 });
 
-// Tu peux garder ta route /conseil telle quelle
+// Garde ta route /conseil telle quelle
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
