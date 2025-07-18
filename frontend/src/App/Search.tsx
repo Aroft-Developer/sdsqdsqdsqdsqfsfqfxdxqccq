@@ -7,12 +7,14 @@ type SearchProps = {
 type Etablissement = {
   id: string;
   nom: string;
-  type: string;
+  categorie: string;
   age_min: number;
   age_max: number;
-  ville: string;
-  site_web?: string;
-  google_maps?: string;
+  tel: string;
+  fax: string;
+  cp_ville: string;
+  adresse_complete: string;
+  google_maps: string;
 };
 
 function Search({ isDark }: SearchProps) {
@@ -39,7 +41,6 @@ function Search({ isDark }: SearchProps) {
       });
 
       const data = await res.json();
-
       setEtablissements(data.resultats || []);
       setJustification(data.justification || "Aucune justification fournie.");
     } catch (error) {
@@ -69,7 +70,7 @@ function Search({ isDark }: SearchProps) {
           <>
             <div className="text-center p-8">
               <h1 className="text-4xl sm:text-6xl font-bold mb-1">
-                Rechercher des Etablissements
+                Rechercher des Établissements
               </h1>
               <h1 className="text-3xl sm:text-5xl font-bold mb-6 underline underline-offset-4 decoration-[#9ca3af]">
                 Plus simplement ⚡️
@@ -121,7 +122,9 @@ function Search({ isDark }: SearchProps) {
               Chargement...
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className={`animate-spin w-6 h-6 ${isDark ? "text-[#1d283a]" : "text-white"}`}
+                className={`animate-spin w-6 h-6 ${
+                  isDark ? "text-[#1d283a]" : "text-white"
+                }`}
                 fill="currentColor"
                 viewBox="0 0 24 24"
               >
@@ -129,7 +132,7 @@ function Search({ isDark }: SearchProps) {
               </svg>
             </div>
             <p className={`mt-1 text-sm ${isDark ? "text-[#1d283a]" : "text-white"}`}>
-              Cette opération peut prendre de quelques secondes à quelques minutes.
+              Cette opération prend en général moins de 10 secondes.
             </p>
           </div>
         )}
@@ -140,31 +143,27 @@ function Search({ isDark }: SearchProps) {
               <div
                 key={etab.id}
                 className={`p-4 rounded-lg border ${
-                  isDark ? "border-gray-300 bg-gray-100" : "border-gray-600 bg-gray-800"
+                  isDark
+                    ? "border-gray-300 bg-gray-100"
+                    : "border-gray-600 bg-gray-800"
                 } shadow`}
               >
                 <h2 className="text-xl font-semibold mb-1">{etab.nom}</h2>
                 <p>
-                  <strong>Type:</strong> {etab.type}
+                  <strong>Type:</strong> {etab.categorie}
                 </p>
                 <p>
-                  <strong>Ville:</strong> {etab.ville}
+                  <strong>Ville:</strong> {etab.cp_ville}
                 </p>
                 <p>
                   <strong>Âge:</strong> {etab.age_min} - {etab.age_max} ans
                 </p>
-                {etab.site_web && (
-                  <p>
-                    <a
-                      href={etab.site_web}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="underline text-blue-600"
-                    >
-                      Site Web
-                    </a>
-                  </p>
-                )}
+                <p>
+                  <strong>Tél:</strong> {etab.tel}
+                </p>
+                <p>
+                  <strong>Adresse:</strong> {etab.adresse_complete}
+                </p>
                 {etab.google_maps && (
                   <p>
                     <a
@@ -185,7 +184,9 @@ function Search({ isDark }: SearchProps) {
         {!loading && justification && (
           <div
             className={`rounded-md border p-4 mb-6 ${
-              isDark ? "border-gray-300 bg-gray-50 text-[#1d283a]" : "border-gray-600 bg-gray-900"
+              isDark
+                ? "border-gray-300 bg-gray-50 text-[#1d283a]"
+                : "border-gray-600 bg-gray-900"
             }`}
           >
             <h3 className="font-semibold mb-2">Justification :</h3>
