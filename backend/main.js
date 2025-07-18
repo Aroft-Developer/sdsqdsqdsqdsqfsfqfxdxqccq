@@ -2,6 +2,7 @@ import express from "express";
 import axios from "axios";
 import cors from "cors";
 import fs from "fs";
+import zlib from "zlib"; // ✅ Pour décompression gzip
 import Groq from "groq-sdk";
 import dotenv from "dotenv";
 
@@ -10,15 +11,18 @@ const app = express();
 app.use(cors({ origin: "https://project-virid-alpha.vercel.app" }));
 app.use(express.json());
 
-// ✅ Ping toutes les 5 minutes pour Render (inutile en local)
+// ✅ Ping Render toutes les 5 min (inutile en local)
 setInterval(() => {
   fetch("https://project-cwgk.onrender.com")
     .then(() => console.log("✅ Ping sent to keep alive"))
     .catch(() => console.log("❌ Ping failed"));
 }, 5 * 60 * 1000);
 
-// ✅ Chargement des établissements (101 000 en mémoire)
-const fullData = JSON.parse(fs.readFileSync("./etab.json", "utf-8"));
+// ✅ Chargement des établissements (via GZIP)
+console.log("📦 Chargement du fichier compressé...");
+const compressed = fs.readFileSync("./etab.json.gz");
+const fullData = JSON.parse(zlib.gunzipSync(compressed).toString("utf-8"));
+
 const etablissements = fullData.map(e => ({
   id: String(e.id || "Inconnu"),
   nom: e.nom || "Nom inconnu",
@@ -35,10 +39,12 @@ const etablissements = fullData.map(e => ({
   google_maps: e.google_maps || ""
 }));
 
+console.log(`✅ ${etablissements.length} établissements chargés`);
+
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 /**
- * ✅ Filtrage local AVANT d'envoyer à Groq (très important pour réduire le temps)
+ * ✅ Filtrage local avant d'envoyer à Groq (gain de temps)
  */
 function filtrerEtablissementsAvantGroq(situation) {
   const ageMatch = situation.match(/(\d{1,2})\s*ans/);
@@ -52,8 +58,8 @@ function filtrerEtablissementsAvantGroq(situation) {
     return ageOk && villeOk;
   });
 
-  console.log(`✅ ${result.length} établissements filtrés sur 101000`);
-  return result.slice(0, 200); // Limite à 200 max pour Groq (≈5 chunks)
+  console.log(`✅ ${result.length} établissements filtrés sur ${etablissements.length}`);
+  return result.slice(0, 200); // Limité à 200 max pour Groq (≈5 chunks)
 }
 
 /**
@@ -167,7 +173,7 @@ app.post("/analyse", async (req, res) => {
 });
 
 /**
- * ✅ Route conseil (inchangée)
+ * ✅ Route conseil
  */
 app.post("/conseil", async (req, res) => {
   try {
@@ -205,13 +211,13 @@ Tu peux évoquer les démarches à envisager, les acteurs à mobiliser, et les r
   }
 });
 
-// ✅ Route catch-all pour éviter les plantages
+// ✅ Route inconnue
 app.use((req, res) => {
-  console.warn(`⚠️ Requête inconnue interceptée : ${req.method} ${req.url}`);
+  console.warn(`⚠️ Requête inconnue : ${req.method} ${req.url}`);
   res.status(404).json({ error: "Route inconnue" });
 });
 
-// ✅ Port dynamique pour Render
+// ✅ Port
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`🚀 Serveur Express lancé sur le port ${PORT}`);
