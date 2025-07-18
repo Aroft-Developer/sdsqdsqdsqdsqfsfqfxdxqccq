@@ -17,7 +17,6 @@ type Etablissement = {
   google_maps?: string;
 };
 
-// Types médico-sociaux avec initiales
 const TYPES_MEDICO_SOCIAUX = [
   { code: "CHRS", label: "Centre d'Hébergement et de Réinsertion Sociale" },
   { code: "EHPAD", label: "Établissement d’Hébergement pour Personnes Âgées Dépendantes" },
@@ -29,7 +28,6 @@ const TYPES_MEDICO_SOCIAUX = [
   { code: "SSIAD", label: "Service de Soins Infirmiers à Domicile" },
 ];
 
-// Menu déroulant pour code postal (59 et 62 uniquement)
 const CODES_POSTAUX = [
   { code: "59", label: "59 - NORD" },
   { code: "62", label: "62 - PAS-DE-CALAIS" },
@@ -43,6 +41,7 @@ function Search({ isDark }: SearchProps) {
 
   const [typeEtab, setTypeEtab] = useState("");
   const [codePostal, setCodePostal] = useState("");
+  const [motsCles, setMotsCles] = useState("");
 
   const [etablissements, setEtablissements] = useState<Etablissement[]>([]);
   const [justification, setJustification] = useState("");
@@ -50,13 +49,17 @@ function Search({ isDark }: SearchProps) {
 
   const hasResponse = !!justification || etablissements.length > 0;
   const isDisabled =
-    loading || (ville.trim() === "" && typeEtab.trim() === "" && codePostal.trim() === "");
+    loading ||
+    (ville.trim() === "" &&
+     typeEtab.trim() === "" &&
+     codePostal.trim() === "" &&
+     motsCles.trim() === "");
 
-  // ✅ Charger le JSON et extraire les villes des départements 59 et 62
+  // Charger le JSON et extraire les villes des départements 59 et 62
   useEffect(() => {
     const fetchEtablissements = async () => {
       try {
-        const res = await fetch("/etabs.json"); // Mets ton fichier dans /public
+        const res = await fetch("/etabs.json"); // fichier dans /public
         const data: Etablissement[] = await res.json();
 
         const villes = new Set<string>();
@@ -78,7 +81,7 @@ function Search({ isDark }: SearchProps) {
     fetchEtablissements();
   }, []);
 
-  // ✅ Filtrage dynamique des villes
+  // Filtrage dynamique des villes
   useEffect(() => {
     if (ville.trim().length > 0) {
       const filtered = allVilles.filter((v) =>
@@ -112,6 +115,7 @@ function Search({ isDark }: SearchProps) {
           ville: ville.trim(),
           type: typeEtab.trim(),
           code_postal: codePostal.trim(),
+          mots_cles: motsCles.trim(),
         }),
       });
 
@@ -130,6 +134,7 @@ function Search({ isDark }: SearchProps) {
     setVille("");
     setTypeEtab("");
     setCodePostal("");
+    setMotsCles("");
     setEtablissements([]);
     setJustification("");
   };
@@ -225,6 +230,20 @@ function Search({ isDark }: SearchProps) {
                 ))}
               </select>
 
+              {/* Mots-clés */}
+              <input
+                type="text"
+                placeholder="Mots-clés (max 50 caractères)"
+                maxLength={50}
+                value={motsCles}
+                onChange={(e) => setMotsCles(e.target.value)}
+                className={`rounded-full border px-4 py-2 outline-none text-base w-full ${
+                  isDark
+                    ? "bg-[#e5e7eb] text-[#1d283a] placeholder-gray-400 border-[#9ca3af]"
+                    : "bg-[#e5e7eb] text-[#1d283a] placeholder-gray-600 border-transparent"
+                }`}
+              />
+
               {/* Bouton envoyer */}
               <button
                 onClick={handleSend}
@@ -259,11 +278,21 @@ function Search({ isDark }: SearchProps) {
                 } shadow`}
               >
                 <h2 className="text-xl font-semibold mb-1">{etab.nom}</h2>
-                <p><strong>Type:</strong> {etab.categorie}</p>
-                <p><strong>Ville:</strong> {etab.cp_ville}</p>
-                <p><strong>Âge:</strong> {etab.age_min ?? "-"} - {etab.age_max ?? "-"} ans</p>
-                <p><strong>Tél:</strong> {etab.tel}</p>
-                <p><strong>Adresse:</strong> {etab.adresse_complete}</p>
+                <p>
+                  <strong>Type:</strong> {etab.categorie}
+                </p>
+                <p>
+                  <strong>Ville:</strong> {etab.cp_ville}
+                </p>
+                <p>
+                  <strong>Âge:</strong> {etab.age_min ?? "-"} - {etab.age_max ?? "-"} ans
+                </p>
+                <p>
+                  <strong>Tél:</strong> {etab.tel}
+                </p>
+                <p>
+                  <strong>Adresse:</strong> {etab.adresse_complete}
+                </p>
               </div>
             ))}
           </div>
