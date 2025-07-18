@@ -10,7 +10,7 @@ app.use(express.json());
 
 // Chargement des établissements (JSON local)
 const fullData = JSON.parse(fs.readFileSync("./etabs.json", "utf-8"));
-const etablissements = fullData.map(e => ({
+const etablissements = fullData.map((e) => ({
   id: String(e.id || "Inconnu"),
   nom: e.nom || "Nom inconnu",
   categorie: e.type || "Catégorie inconnue",
@@ -18,9 +18,16 @@ const etablissements = fullData.map(e => ({
   age_max: e.age_max != null ? e.age_max : 21,
   tel: e.tel || "Inconnu",
   fax: e.fax || "Inconnu",
-  cp_ville: e.cp_ville || `${e.code_postal || "00000"} ${e.ville || "Ville inconnue"}`,
-  adresse_complete: e.adresse_complete || `${e.numero_voie || ""} ${e.rue || ""}, ${e.code_postal || ""} ${e.ville || ""}`.trim() || "Adresse inconnue",
-  google_maps: e.google_maps || ""
+  cp_ville:
+    e.cp_ville ||
+    `${e.code_postal || "00000"} ${e.ville || "Ville inconnue"}`,
+  adresse_complete:
+    e.adresse_complete ||
+    `${e.numero_voie || ""} ${e.rue || ""}, ${e.code_postal || ""} ${
+      e.ville || ""
+    }`.trim() ||
+    "Adresse inconnue",
+  google_maps: e.google_maps || "",
 }));
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
@@ -36,7 +43,6 @@ async function analyserParMorceaux(situation, etabs, mots_cles) {
   }
 
   for (const chunk of chunks) {
-    // Ajout de mots-clés dans le prompt pour préciser la recherche
     const prompt = `
 Tu es un assistant éducatif spécialisé.
 
@@ -88,7 +94,10 @@ Remplace les valeurs manquantes par "Inconnu".
 
       const raw = completion.choices[0].message.content.trim();
       const match = raw.match(/\{[\s\S]*\}/);
-      if (!match) continue;
+      if (!match) {
+        console.warn("Aucun JSON détecté dans la réponse Groq pour un chunk.");
+        continue;
+      }
 
       const json = JSON.parse(match[0]);
 
@@ -109,27 +118,41 @@ Remplace les valeurs manquantes par "Inconnu".
   };
 }
 
-// Fonction de filtre local des établissements selon critères envoyés par le client
 function filtrerEtablissements({ ville, type, code_postal, mots_cles }) {
   return etablissements.filter((etab) => {
-    // Filtre sur la ville (partie ville seulement, case insensitive)
+    // Ville : comparer en insensible à la casse et en normalisant les espaces
     if (ville) {
-      const villeEtab = etab.cp_ville.split(" ").slice(1).join(" ").toLowerCase();
-      if (!villeEtab.includes(ville.toLowerCase())) return false;
+      const villeEtab = etab.cp_ville
+        .split(" ")
+        .slice(1)
+        .join(" ")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/\p{Diacritic}/gu, "");
+      const villeNorm = ville.toLowerCase().normalize("NFD").replace(/\p{Diacritic}/gu, "");
+      if (!villeEtab.includes(villeNorm)) return false;
     }
-    // Filtre sur le type
+    // Type : insensible à la casse
     if (type && type !== "") {
       if (!etab.categorie.toLowerCase().includes(type.toLowerCase())) return false;
     }
-    // Filtre sur code postal (département 59 ou 62)
+    // Code postal : vérifier uniquement les 2 premiers chiffres
     if (code_postal && code_postal !== "") {
       if (!etab.cp_ville.startsWith(code_postal)) return false;
     }
-    // Mots-clés filtrage simple dans nom, categorie, adresse
+    // Mots-clés : chaque mot doit être contenu dans nom, catégorie ou adresse
     if (mots_cles && mots_cles !== "") {
       const mots = mots_cles.toLowerCase().split(" ");
-      const haystack =
-        (etab.nom + " " + etab.categorie + " " + etab.adresse_complete).toLowerCase();
+      const haystack = (
+        etab.nom +
+        " " +
+        etab.categorie +
+        " " +
+        etab.adresse_complete
+      )
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/\p{Diacritic}/gu, "");
       if (!mots.every((mot) => haystack.includes(mot))) return false;
     }
 
@@ -141,18 +164,24 @@ app.post("/analyse", async (req, res) => {
   try {
     const { ville, type, code_postal, mots_cles } = req.body;
 
-    // Vérification sommaire (au moins un critère)
     if (
       (!ville || ville.trim() === "") &&
       (!type || type.trim() === "") &&
       (!code_postal || code_postal.trim() === "") &&
       (!mots_cles || mots_cles.trim() === "")
     ) {
-      return res.status(400).json({ error: "Au moins un critère de recherche doit être renseigné." });
+      return res.status(400).json({
+        error: "Au moins un critère de recherche doit être renseigné.",
+      });
     }
 
-    // Filtrer localement avant analyse
+    // Logs pour debug
+    console.log("[Recherche] critères reçus :", { ville, type, code_postal, mots_cles });
+
+    // Filtrage local des établissements
     const filteredEtabs = filtrerEtablissements({ ville, type, code_postal, mots_cles });
+
+    console.log("[Recherche] établissements filtrés :", filteredEtabs.length);
 
     if (filteredEtabs.length === 0) {
       return res.json({
@@ -161,7 +190,7 @@ app.post("/analyse", async (req, res) => {
       });
     }
 
-    // Appeler Groq avec la situation + établissements filtrés + mots_cles
+    // Appeler Groq avec situation + établissements + mots clés
     const resultatFinal = await analyserParMorceaux(ville || "Recherche", filteredEtabs, mots_cles || "");
 
     res.json(resultatFinal);
@@ -171,9 +200,8 @@ app.post("/analyse", async (req, res) => {
   }
 });
 
-// ... Garde le reste du serveur (route /conseil, etc.)
+// Tu peux garder ta route /conseil telle quelle
 
-// Port dynamique Render
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`🚀 Serveur Express lancé sur le port ${PORT}`);
