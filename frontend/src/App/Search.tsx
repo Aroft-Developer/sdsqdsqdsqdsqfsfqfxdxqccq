@@ -18,14 +18,14 @@ type Etablissement = {
 };
 
 const TYPES_MEDICO_SOCIAUX = [
-  { code: "CHRS", label: "Centre d'Hébergement et de Réinsertion Sociale" },
-  { code: "EHPAD", label: "Établissement d’Hébergement pour Personnes Âgées Dépendantes" },
-  { code: "IME", label: "Institut Médico-Éducatif" },
-  { code: "ITEP", label: "Institut Thérapeutique, Éducatif et Pédagogique" },
-  { code: "MAS", label: "Maison d’Accueil Spécialisée" },
-  { code: "FAM", label: "Foyer d’Accueil Médicalisé" },
-  { code: "SESSAD", label: "Service d'Éducation Spéciale et de Soins à Domicile" },
-  { code: "SSIAD", label: "Service de Soins Infirmiers à Domicile" },
+  { code: "C.H.R.S", label: "Centre d'Hébergement et de Réinsertion Sociale" },
+  { code: "E.H.P.A.D", label: "Établissement d’Hébergement pour Personnes Âgées Dépendantes" },
+  { code: "I.M.E", label: "Institut Médico-Éducatif" },
+  { code: "I.T.E.P", label: "Institut Thérapeutique, Éducatif et Pédagogique" },
+  { code: "M.A.S", label: "Maison d’Accueil Spécialisée" },
+  { code: "F.A.M", label: "Foyer d’Accueil Médicalisé" },
+  { code: "S.E.S.S.A.D", label: "Service d'Éducation Spéciale et de Soins à Domicile" },
+  { code: "S.S.I.A.D", label: "Service de Soins Infirmiers à Domicile" },
 ];
 
 const CODES_POSTAUX = [
@@ -329,3 +329,4 @@ function Search({ isDark }: SearchProps) {
 }
 
 export default Search;
+
