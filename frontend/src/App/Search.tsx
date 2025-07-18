@@ -17,17 +17,32 @@ type Etablissement = {
   google_maps: string;
 };
 
+// Liste des types médico-sociaux avec initiales
+const TYPES_MEDICO_SOCIAUX = [
+  { code: "CHRS", label: "Centre d'Hébergement et de Réinsertion Sociale" },
+  { code: "EHPAD", label: "Établissement d’Hébergement pour Personnes Âgées Dépendantes" },
+  { code: "IME", label: "Institut Médico-Éducatif" },
+  { code: "ITEP", label: "Institut Thérapeutique, Éducatif et Pédagogique" },
+  { code: "MAS", label: "Maison d’Accueil Spécialisée" },
+  { code: "FAM", label: "Foyer d’Accueil Médicalisé" },
+  { code: "SESSAD", label: "Service d'Éducation Spéciale et de Soins à Domicile" },
+  { code: "SSIAD", label: "Service de Soins Infirmiers à Domicile" },
+];
+
 function Search({ isDark }: SearchProps) {
-  const [search, setSearch] = useState("");
+  const [ville, setVille] = useState("");
+  const [typeEtab, setTypeEtab] = useState("");
+  const [codePostal, setCodePostal] = useState("");
   const [etablissements, setEtablissements] = useState<Etablissement[]>([]);
   const [justification, setJustification] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const isDisabled = search.trim().length === 0 || loading;
   const hasResponse = !!justification || etablissements.length > 0;
+  const isDisabled =
+    loading || (ville.trim() === "" && typeEtab.trim() === "" && codePostal.trim() === "");
 
   const handleSend = async () => {
-    if (search.trim() === "") return;
+    if (isDisabled) return;
 
     setLoading(true);
     setEtablissements([]);
@@ -37,7 +52,11 @@ function Search({ isDark }: SearchProps) {
       const res = await fetch("https://project-cwgk.onrender.com/analyse", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: search }),
+        body: JSON.stringify({
+          ville: ville.trim(),
+          type: typeEtab.trim(),
+          code_postal: codePostal.trim(),
+        }),
       });
 
       const data = await res.json();
@@ -52,7 +71,9 @@ function Search({ isDark }: SearchProps) {
   };
 
   const handleReset = () => {
-    setSearch("");
+    setVille("");
+    setTypeEtab("");
+    setCodePostal("");
     setEtablissements([]);
     setJustification("");
   };
@@ -61,9 +82,7 @@ function Search({ isDark }: SearchProps) {
     <div
       className={`font-[Outfit] w-full min-h-[calc(100vh-68px-68px)] flex flex-col items-center px-4 py-6 transition ${
         isDark ? "bg-white text-[#1d283a]" : "bg-[#040712] text-white"
-      }
-      sm:h-[calc(100vh-68px-68px)] sm:justify-center
-    max-sm:pt-6 max-sm:pb-6`}
+      } sm:h-[calc(100vh-68px-68px)] sm:justify-center max-sm:pt-6 max-sm:pb-6`}
     >
       <div className="items-center w-full max-w-[990px] px-4">
         {!hasResponse && !loading && (
@@ -73,49 +92,84 @@ function Search({ isDark }: SearchProps) {
                 Rechercher des Établissements
               </h1>
               <h1 className="text-3xl sm:text-5xl font-bold mb-6 underline underline-offset-4 decoration-[#9ca3af]">
-                Plus simplement ⚡️
+                Filtrage avancé ⚡️
               </h1>
             </div>
 
-            <div className="flex justify-center mt-2 mb-6 px-4">
-              <div
-                className={`relative w-full max-w-[600px] sm:max-w-[500px] max-[420px]:max-w-[90%]`}
+            {/* Filtres */}
+            <div className="flex flex-col gap-4 max-w-[600px] mx-auto">
+              {/* Ville avec autocomplétion */}
+              <input
+                type="text"
+                list="villes"
+                placeholder="Ville (autocomplétion)"
+                value={ville}
+                onChange={(e) => setVille(e.target.value)}
+                className={`rounded-full border px-4 py-2 outline-none text-base ${
+                  isDark
+                    ? "bg-[#e5e7eb] text-[#1d283a] placeholder-gray-400 border-[#9ca3af]"
+                    : "bg-[#e5e7eb] text-[#1d283a] placeholder-gray-600 border-transparent"
+                }`}
+              />
+              <datalist id="villes">
+                {/* Exemple de villes, à remplacer dynamiquement */}
+                <option value="Lille" />
+                <option value="Roubaix" />
+                <option value="Calais" />
+                <option value="Dunkerque" />
+              </datalist>
+
+              {/* Type d'établissement */}
+              <select
+                value={typeEtab}
+                onChange={(e) => setTypeEtab(e.target.value)}
+                className={`rounded-full border px-4 py-2 outline-none text-base ${
+                  isDark
+                    ? "bg-[#e5e7eb] text-[#1d283a] border-[#9ca3af]"
+                    : "bg-[#e5e7eb] text-[#1d283a] border-transparent"
+                }`}
               >
-                <input
-                  type="text"
-                  maxLength={100}
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Votre recherche..."
-                  className={`w-full pr-12 rounded-full border px-4 py-2 outline-none text-base ${
-                    isDark
-                      ? "bg-[#e5e7eb] text-[#1d283a] placeholder-gray-400 border-[#9ca3af]"
-                      : "bg-[#e5e7eb] text-[#1d283a] placeholder-gray-600 border-transparent"
-                  }`}
-                  disabled={loading}
-                />
-                <button
-                  onClick={handleSend}
-                  disabled={isDisabled}
-                  className={`absolute top-1/2 right-2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-full transition
-                    ${
-                      isDisabled
-                        ? "bg-gray-400 cursor-not-allowed"
-                        : isDark
-                        ? "bg-[#1d283a] hover:bg-[#1d283a99] cursor-pointer"
-                        : "bg-[#c0c0c0] hover:bg-[#9ca3af] cursor-pointer"
-                    }
-                  `}
-                >
-                  <span className={`text-lg ${isDark ? "text-white" : "text-black"}`}>
-                    ↑
-                  </span>
-                </button>
-              </div>
+                <option value="">Type d'établissement (optionnel)</option>
+                {TYPES_MEDICO_SOCIAUX.map((t) => (
+                  <option key={t.code} value={t.code}>
+                    {t.code} - {t.label}
+                  </option>
+                ))}
+              </select>
+
+              {/* Code postal */}
+              <input
+                type="text"
+                maxLength={5}
+                placeholder="Code postal"
+                value={codePostal}
+                onChange={(e) => setCodePostal(e.target.value)}
+                className={`rounded-full border px-4 py-2 outline-none text-base ${
+                  isDark
+                    ? "bg-[#e5e7eb] text-[#1d283a] placeholder-gray-400 border-[#9ca3af]"
+                    : "bg-[#e5e7eb] text-[#1d283a] placeholder-gray-600 border-transparent"
+                }`}
+              />
+
+              {/* Bouton envoyer */}
+              <button
+                onClick={handleSend}
+                disabled={isDisabled}
+                className={`w-full rounded-full px-4 py-2 font-semibold transition ${
+                  isDisabled
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : isDark
+                    ? "bg-[#1d283a] text-white hover:bg-[#1d283a99] cursor-pointer"
+                    : "bg-[#c0c0c0] text-black hover:bg-[#9ca3af] cursor-pointer"
+                }`}
+              >
+                Rechercher
+              </button>
             </div>
           </>
         )}
 
+        {/* Loading */}
         {loading && (
           <div className="flex flex-col items-center mb-6 text-lg font-semibold gap-2">
             <div className="flex items-center gap-2">
@@ -131,12 +185,10 @@ function Search({ isDark }: SearchProps) {
                 <path d="M19.07 4.93a9.9 9.9 0 0 0-3.18-2.14 10.12 10.12 0 0 0-7.79 0c-1.19.5-2.26 1.23-3.18 2.14S3.28 6.92 2.78 8.11A9.95 9.95 0 0 0 1.99 12h2c0-1.08.21-2.13.63-3.11.4-.95.98-1.81 1.72-2.54.73-.74 1.59-1.31 2.54-1.71 1.97-.83 4.26-.83 6.23 0 .95.4 1.81.98 2.54 1.72.17.17.33.34.48.52L16 9.01h6V3l-2.45 2.45c-.15-.18-.31-.36-.48-.52M19.37 15.11c-.4.95-.98 1.81-1.72 2.54-.73.74-1.59 1.31-2.54 1.71-1.97.83-4.26.83-6.23 0-.95-.4-1.81-.98-2.54-1.72-.17-.17-.33-.34-.48-.52l2.13-2.13H2v6l2.45-2.45c.15.18.31.36.48.52.92.92 1.99 1.64 3.18 2.14 1.23.52 2.54.79 3.89.79s2.66-.26 3.89-.79c1.19-.5 2.26-1.23 3.18-2.14s1.64-1.99 2.14-3.18c.52-1.23.79-2.54.79-3.89h-2c0 1.08-.21 2.13-.63 3.11Z" />
               </svg>
             </div>
-            <p className={`mt-1 text-sm ${isDark ? "text-[#1d283a]" : "text-white"}`}>
-              Cette opération prend en général moins de 10 secondes.
-            </p>
           </div>
         )}
 
+        {/* Résultats */}
         {etablissements.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
             {etablissements.map((etab) => (
@@ -181,6 +233,7 @@ function Search({ isDark }: SearchProps) {
           </div>
         )}
 
+        {/* Justification */}
         {!loading && justification && (
           <div
             className={`rounded-md border p-4 mb-6 ${
