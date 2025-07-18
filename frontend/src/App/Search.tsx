@@ -50,10 +50,8 @@ function Search({ isDark }: SearchProps) {
   const hasResponse = !!justification || etablissements.length > 0;
   const isDisabled =
     loading ||
-    (ville.trim() === "" &&
-     typeEtab.trim() === "" &&
-     codePostal.trim() === "" &&
-     motsCles.trim() === "");
+    (typeEtab.trim() === "" &&
+     codePostal.trim() === "");
 
   // Charger le JSON et extraire les villes des départements 59 et 62
   useEffect(() => {
