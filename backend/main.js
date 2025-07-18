@@ -2,27 +2,14 @@ import express from "express";
 import axios from "axios";
 import cors from "cors";
 import fs from "fs";
-import zlib from "zlib"; // ✅ Pour décompression gzip
 import Groq from "groq-sdk";
-import dotenv from "dotenv";
 
-dotenv.config();
 const app = express();
 app.use(cors({ origin: "https://project-virid-alpha.vercel.app" }));
 app.use(express.json());
 
-// ✅ Ping Render toutes les 5 min (inutile en local)
-setInterval(() => {
-  fetch("https://project-cwgk.onrender.com")
-    .then(() => console.log("✅ Ping sent to keep alive"))
-    .catch(() => console.log("❌ Ping failed"));
-}, 5 * 60 * 1000);
-
-// ✅ Chargement des établissements (via GZIP)
-console.log("📦 Chargement du fichier compressé...");
-const compressed = fs.readFileSync("./etab.json.gz");
-const fullData = JSON.parse(zlib.gunzipSync(compressed).toString("utf-8"));
-
+// Chargement des établissements (JSON local)
+const fullData = JSON.parse(fs.readFileSync("./etabs.json", "utf-8"));
 const etablissements = fullData.map(e => ({
   id: String(e.id || "Inconnu"),
   nom: e.nom || "Nom inconnu",
@@ -32,40 +19,13 @@ const etablissements = fullData.map(e => ({
   tel: e.tel || "Inconnu",
   fax: e.fax || "Inconnu",
   cp_ville: e.cp_ville || `${e.code_postal || "00000"} ${e.ville || "Ville inconnue"}`,
-  adresse_complete:
-    e.adresse_complete ||
-    `${e.numero_voie || ""} ${e.rue || ""}, ${e.code_postal || ""} ${e.ville || ""}`.trim() ||
-    "Adresse inconnue",
+  adresse_complete: e.adresse_complete || `${e.numero_voie || ""} ${e.rue || ""}, ${e.code_postal || ""} ${e.ville || ""}`.trim() || "Adresse inconnue",
   google_maps: e.google_maps || ""
 }));
 
-console.log(`✅ ${etablissements.length} établissements chargés`);
-
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
-/**
- * ✅ Filtrage local avant d'envoyer à Groq (gain de temps)
- */
-function filtrerEtablissementsAvantGroq(situation) {
-  const ageMatch = situation.match(/(\d{1,2})\s*ans/);
-  const age = ageMatch ? parseInt(ageMatch[1], 10) : null;
-  const villeMatch = situation.match(/à\s+([A-Za-zÀ-ÿ-]+)/i);
-  const ville = villeMatch ? villeMatch[1] : null;
-
-  const result = etablissements.filter(e => {
-    const ageOk = !age || (e.age_min <= age && e.age_max >= age);
-    const villeOk = !ville || e.cp_ville.toLowerCase().includes(ville.toLowerCase());
-    return ageOk && villeOk;
-  });
-
-  console.log(`✅ ${result.length} établissements filtrés sur ${etablissements.length}`);
-  return result.slice(0, 200); // Limité à 200 max pour Groq (≈5 chunks)
-}
-
-/**
- * ✅ Analyse par morceaux (Groq)
- */
-async function analyserParMorceaux(situation, etabs) {
+async function analyserParMorceaux(situation, etabs, mots_cles) {
   const CHUNK_SIZE = 40;
   const resultats = [];
   let justificationGlobal = "";
@@ -76,10 +36,13 @@ async function analyserParMorceaux(situation, etabs) {
   }
 
   for (const chunk of chunks) {
+    // Ajout de mots-clés dans le prompt pour préciser la recherche
     const prompt = `
 Tu es un assistant éducatif spécialisé.
 
 Voici une situation : "${situation}"
+
+Mots-clés fournis par l'utilisateur : "${mots_cles}"
 
 Voici une liste de ${chunk.length} établissements :
 ${JSON.stringify(chunk, null, 2)}
@@ -96,10 +59,10 @@ Réponds STRICTEMENT avec ce format :
       "categorie": "string",
       "age_min": number,
       "age_max": number,
-      "tel": "string",
-      "fax": "string",
+      "tel": string,
+      "fax": string,
       "cp_ville": "string",
-      "adresse_complete": "string",
+      "adresse_complete": string,
       "google_maps": "string"
     }
   ],
@@ -120,7 +83,7 @@ Remplace les valeurs manquantes par "Inconnu".
         model: "llama3-70b-8192",
         messages: [{ role: "user", content: prompt }],
         temperature: 0.7,
-        max_tokens: 1100
+        max_tokens: 1100,
       });
 
       const raw = completion.choices[0].message.content.trim();
@@ -142,82 +105,75 @@ Remplace les valeurs manquantes par "Inconnu".
 
   return {
     resultats: resultats.slice(0, 6),
-    justification: justificationGlobal.trim() || "Analyse effectuée par morceaux."
+    justification: justificationGlobal.trim() || "Analyse effectuée par morceaux.",
   };
 }
 
-/**
- * ✅ Route analyse
- */
+// Fonction de filtre local des établissements selon critères envoyés par le client
+function filtrerEtablissements({ ville, type, code_postal, mots_cles }) {
+  return etablissements.filter((etab) => {
+    // Filtre sur la ville (partie ville seulement, case insensitive)
+    if (ville) {
+      const villeEtab = etab.cp_ville.split(" ").slice(1).join(" ").toLowerCase();
+      if (!villeEtab.includes(ville.toLowerCase())) return false;
+    }
+    // Filtre sur le type
+    if (type && type !== "") {
+      if (!etab.categorie.toLowerCase().includes(type.toLowerCase())) return false;
+    }
+    // Filtre sur code postal (département 59 ou 62)
+    if (code_postal && code_postal !== "") {
+      if (!etab.cp_ville.startsWith(code_postal)) return false;
+    }
+    // Mots-clés filtrage simple dans nom, categorie, adresse
+    if (mots_cles && mots_cles !== "") {
+      const mots = mots_cles.toLowerCase().split(" ");
+      const haystack =
+        (etab.nom + " " + etab.categorie + " " + etab.adresse_complete).toLowerCase();
+      if (!mots.every((mot) => haystack.includes(mot))) return false;
+    }
+
+    return true;
+  });
+}
+
 app.post("/analyse", async (req, res) => {
   try {
-    const userRequest = req.body.text;
-    if (!userRequest) return res.status(400).json({ error: "texte manquante" });
+    const { ville, type, code_postal, mots_cles } = req.body;
 
-    const etabsFiltres = filtrerEtablissementsAvantGroq(userRequest);
+    // Vérification sommaire (au moins un critère)
+    if (
+      (!ville || ville.trim() === "") &&
+      (!type || type.trim() === "") &&
+      (!code_postal || code_postal.trim() === "") &&
+      (!mots_cles || mots_cles.trim() === "")
+    ) {
+      return res.status(400).json({ error: "Au moins un critère de recherche doit être renseigné." });
+    }
 
-    if (etabsFiltres.length === 0) {
+    // Filtrer localement avant analyse
+    const filteredEtabs = filtrerEtablissements({ ville, type, code_postal, mots_cles });
+
+    if (filteredEtabs.length === 0) {
       return res.json({
         resultats: [],
-        justification: "Aucun établissement ne correspond à cette demande."
+        justification: "Aucun établissement ne correspond aux critères de recherche.",
       });
     }
 
-    const resultatFinal = await analyserParMorceaux(userRequest, etabsFiltres);
-    res.json(resultatFinal);
+    // Appeler Groq avec la situation + établissements filtrés + mots_cles
+    const resultatFinal = await analyserParMorceaux(ville || "Recherche", filteredEtabs, mots_cles || "");
 
+    res.json(resultatFinal);
   } catch (err) {
     console.error("❌ Erreur serveur (/analyse) :", err);
     res.status(500).json({ error: "Erreur serveur" });
   }
 });
 
-/**
- * ✅ Route conseil
- */
-app.post("/conseil", async (req, res) => {
-  try {
-    const situation = req.body.text;
-    if (!situation) return res.status(400).json({ error: "situation manquante" });
+// ... Garde le reste du serveur (route /conseil, etc.)
 
-    const prompt = `Tu es un éducateur spécialisé expérimenté qui échange avec un collègue éducateur spécialisé. 
-Dans le cadre de ton métier, analyse la situation suivante : "${situation}".
-Fournis un conseil professionnel, clair, structuré et orienté solution, destiné à un éducateur spécialisé.
-Le conseil doit comporter entre 10 et 20 lignes, être pragmatique, éviter les généralités, et inclure des pistes d'intervention concrètes, ainsi que des points d'attention spécifiques à cette situation. 
-Tu peux évoquer les démarches à envisager, les acteurs à mobiliser, et les risques à surveiller, toujours dans une optique de soutien efficace au jeune.`;
-
-    const completion = await axios.post(
-      "https://api.groq.com/openai/v1/chat/completions",
-      {
-        model: "llama3-70b-8192",
-        messages: [{ role: "user", content: prompt }],
-        temperature: 0.7,
-        max_tokens: 700
-      },
-      {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${process.env.GROQ_API_KEY}`
-        }
-      }
-    );
-
-    const responseText = completion.data.choices[0].message.content.trim();
-    res.json({ reponse: responseText });
-
-  } catch (err) {
-    console.error("❌ Erreur serveur (conseil) :", err);
-    res.status(500).json({ error: "Erreur serveur" });
-  }
-});
-
-// ✅ Route inconnue
-app.use((req, res) => {
-  console.warn(`⚠️ Requête inconnue : ${req.method} ${req.url}`);
-  res.status(404).json({ error: "Route inconnue" });
-});
-
-// ✅ Port
+// Port dynamique Render
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`🚀 Serveur Express lancé sur le port ${PORT}`);
