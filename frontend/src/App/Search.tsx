@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 type SearchProps = {
   isDark: boolean;
@@ -8,16 +8,16 @@ type Etablissement = {
   id: string;
   nom: string;
   categorie: string;
-  age_min: number;
-  age_max: number;
+  age_min: number | null;
+  age_max: number | null;
   tel: string;
   fax: string;
-  cp_ville: string;
+  cp_ville: string; // ex: "59490 SOMAIN"
   adresse_complete: string;
-  google_maps: string;
+  google_maps?: string;
 };
 
-// Liste des types médico-sociaux avec initiales
+// Types médico-sociaux avec initiales
 const TYPES_MEDICO_SOCIAUX = [
   { code: "CHRS", label: "Centre d'Hébergement et de Réinsertion Sociale" },
   { code: "EHPAD", label: "Établissement d’Hébergement pour Personnes Âgées Dépendantes" },
@@ -29,10 +29,21 @@ const TYPES_MEDICO_SOCIAUX = [
   { code: "SSIAD", label: "Service de Soins Infirmiers à Domicile" },
 ];
 
+// Menu déroulant pour code postal (59 et 62 uniquement)
+const CODES_POSTAUX = [
+  { code: "59", label: "59 - NORD" },
+  { code: "62", label: "62 - PAS-DE-CALAIS" },
+];
+
 function Search({ isDark }: SearchProps) {
   const [ville, setVille] = useState("");
+  const [filteredVilles, setFilteredVilles] = useState<string[]>([]);
+  const [allVilles, setAllVilles] = useState<string[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+
   const [typeEtab, setTypeEtab] = useState("");
   const [codePostal, setCodePostal] = useState("");
+
   const [etablissements, setEtablissements] = useState<Etablissement[]>([]);
   const [justification, setJustification] = useState("");
   const [loading, setLoading] = useState(false);
@@ -40,6 +51,51 @@ function Search({ isDark }: SearchProps) {
   const hasResponse = !!justification || etablissements.length > 0;
   const isDisabled =
     loading || (ville.trim() === "" && typeEtab.trim() === "" && codePostal.trim() === "");
+
+  // ✅ Charger le JSON et extraire les villes des départements 59 et 62
+  useEffect(() => {
+    const fetchEtablissements = async () => {
+      try {
+        const res = await fetch("/etabs.json"); // Mets ton fichier dans /public
+        const data: Etablissement[] = await res.json();
+
+        const villes = new Set<string>();
+        data.forEach((etab) => {
+          if (etab.cp_ville) {
+            const [cp, ...villePart] = etab.cp_ville.split(" ");
+            if (cp.startsWith("59") || cp.startsWith("62")) {
+              villes.add(villePart.join(" ").toUpperCase());
+            }
+          }
+        });
+
+        setAllVilles(Array.from(villes).sort());
+      } catch (err) {
+        console.error("Erreur JSON:", err);
+      }
+    };
+
+    fetchEtablissements();
+  }, []);
+
+  // ✅ Filtrage dynamique des villes
+  useEffect(() => {
+    if (ville.trim().length > 0) {
+      const filtered = allVilles.filter((v) =>
+        v.toLowerCase().startsWith(ville.toLowerCase())
+      );
+      setFilteredVilles(filtered);
+      setShowSuggestions(filtered.length > 0);
+    } else {
+      setFilteredVilles([]);
+      setShowSuggestions(false);
+    }
+  }, [ville, allVilles]);
+
+  const handleVilleSelect = (v: string) => {
+    setVille(v);
+    setShowSuggestions(false);
+  };
 
   const handleSend = async () => {
     if (isDisabled) return;
@@ -99,25 +155,39 @@ function Search({ isDark }: SearchProps) {
             {/* Filtres */}
             <div className="flex flex-col gap-4 max-w-[600px] mx-auto">
               {/* Ville avec autocomplétion */}
-              <input
-                type="text"
-                list="villes"
-                placeholder="Ville (autocomplétion)"
-                value={ville}
-                onChange={(e) => setVille(e.target.value)}
-                className={`rounded-full border px-4 py-2 outline-none text-base ${
-                  isDark
-                    ? "bg-[#e5e7eb] text-[#1d283a] placeholder-gray-400 border-[#9ca3af]"
-                    : "bg-[#e5e7eb] text-[#1d283a] placeholder-gray-600 border-transparent"
-                }`}
-              />
-              <datalist id="villes">
-                {/* Exemple de villes, à remplacer dynamiquement */}
-                <option value="Lille" />
-                <option value="Roubaix" />
-                <option value="Calais" />
-                <option value="Dunkerque" />
-              </datalist>
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Ville (59 ou 62)"
+                  value={ville}
+                  onChange={(e) => setVille(e.target.value)}
+                  onFocus={() => ville && setShowSuggestions(true)}
+                  className={`rounded-full border px-4 py-2 outline-none text-base w-full ${
+                    isDark
+                      ? "bg-[#e5e7eb] text-[#1d283a] placeholder-gray-400 border-[#9ca3af]"
+                      : "bg-[#e5e7eb] text-[#1d283a] placeholder-gray-600 border-transparent"
+                  }`}
+                />
+                {showSuggestions && (
+                  <ul
+                    className={`absolute left-0 right-0 mt-1 max-h-40 overflow-auto rounded-lg shadow border z-10 ${
+                      isDark
+                        ? "bg-white text-[#1d283a] border-gray-300"
+                        : "bg-gray-100 text-black border-gray-600"
+                    }`}
+                  >
+                    {filteredVilles.map((v) => (
+                      <li
+                        key={v}
+                        onClick={() => handleVilleSelect(v)}
+                        className="px-3 py-2 cursor-pointer hover:bg-gray-200"
+                      >
+                        {v}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
 
               {/* Type d'établissement */}
               <select
@@ -137,19 +207,23 @@ function Search({ isDark }: SearchProps) {
                 ))}
               </select>
 
-              {/* Code postal */}
-              <input
-                type="text"
-                maxLength={5}
-                placeholder="Code postal"
+              {/* Code postal 59 / 62 */}
+              <select
                 value={codePostal}
                 onChange={(e) => setCodePostal(e.target.value)}
                 className={`rounded-full border px-4 py-2 outline-none text-base ${
                   isDark
-                    ? "bg-[#e5e7eb] text-[#1d283a] placeholder-gray-400 border-[#9ca3af]"
-                    : "bg-[#e5e7eb] text-[#1d283a] placeholder-gray-600 border-transparent"
+                    ? "bg-[#e5e7eb] text-[#1d283a] border-[#9ca3af]"
+                    : "bg-[#e5e7eb] text-[#1d283a] border-transparent"
                 }`}
-              />
+              >
+                <option value="">Département (optionnel)</option>
+                {CODES_POSTAUX.map((c) => (
+                  <option key={c.code} value={c.code}>
+                    {c.label}
+                  </option>
+                ))}
+              </select>
 
               {/* Bouton envoyer */}
               <button
@@ -170,27 +244,11 @@ function Search({ isDark }: SearchProps) {
         )}
 
         {/* Loading */}
-        {loading && (
-          <div className="flex flex-col items-center mb-6 text-lg font-semibold gap-2">
-            <div className="flex items-center gap-2">
-              Chargement...
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className={`animate-spin w-6 h-6 ${
-                  isDark ? "text-[#1d283a]" : "text-white"
-                }`}
-                fill="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path d="M19.07 4.93a9.9 9.9 0 0 0-3.18-2.14 10.12 10.12 0 0 0-7.79 0c-1.19.5-2.26 1.23-3.18 2.14S3.28 6.92 2.78 8.11A9.95 9.95 0 0 0 1.99 12h2c0-1.08.21-2.13.63-3.11.4-.95.98-1.81 1.72-2.54.73-.74 1.59-1.31 2.54-1.71 1.97-.83 4.26-.83 6.23 0 .95.4 1.81.98 2.54 1.72.17.17.33.34.48.52L16 9.01h6V3l-2.45 2.45c-.15-.18-.31-.36-.48-.52M19.37 15.11c-.4.95-.98 1.81-1.72 2.54-.73.74-1.59 1.31-2.54 1.71-1.97.83-4.26.83-6.23 0-.95-.4-1.81-.98-2.54-1.72-.17-.17-.33-.34-.48-.52l2.13-2.13H2v6l2.45-2.45c.15.18.31.36.48.52.92.92 1.99 1.64 3.18 2.14 1.23.52 2.54.79 3.89.79s2.66-.26 3.89-.79c1.19-.5 2.26-1.23 3.18-2.14s1.64-1.99 2.14-3.18c.52-1.23.79-2.54.79-3.89h-2c0 1.08-.21 2.13-.63 3.11Z" />
-              </svg>
-            </div>
-          </div>
-        )}
+        {loading && <p className="mt-6 text-center">Chargement...</p>}
 
         {/* Résultats */}
         {etablissements.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6 mt-6">
             {etablissements.map((etab) => (
               <div
                 key={etab.id}
@@ -201,39 +259,16 @@ function Search({ isDark }: SearchProps) {
                 } shadow`}
               >
                 <h2 className="text-xl font-semibold mb-1">{etab.nom}</h2>
-                <p>
-                  <strong>Type:</strong> {etab.categorie}
-                </p>
-                <p>
-                  <strong>Ville:</strong> {etab.cp_ville}
-                </p>
-                <p>
-                  <strong>Âge:</strong> {etab.age_min} - {etab.age_max} ans
-                </p>
-                <p>
-                  <strong>Tél:</strong> {etab.tel}
-                </p>
-                <p>
-                  <strong>Adresse:</strong> {etab.adresse_complete}
-                </p>
-                {etab.google_maps && (
-                  <p>
-                    <a
-                      href={etab.google_maps}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="underline text-green-600"
-                    >
-                      Google Maps
-                    </a>
-                  </p>
-                )}
+                <p><strong>Type:</strong> {etab.categorie}</p>
+                <p><strong>Ville:</strong> {etab.cp_ville}</p>
+                <p><strong>Âge:</strong> {etab.age_min ?? "-"} - {etab.age_max ?? "-"} ans</p>
+                <p><strong>Tél:</strong> {etab.tel}</p>
+                <p><strong>Adresse:</strong> {etab.adresse_complete}</p>
               </div>
             ))}
           </div>
         )}
 
-        {/* Justification */}
         {!loading && justification && (
           <div
             className={`rounded-md border p-4 mb-6 ${
