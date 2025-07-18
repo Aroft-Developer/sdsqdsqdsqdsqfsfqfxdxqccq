@@ -33,7 +33,7 @@ const etablissements = fullData.map((e) => ({
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 async function analyserParMorceaux(situation, etabs, mots_cles) {
-  const CHUNK_SIZE = 40;
+  const CHUNK_SIZE = 1; // Petit chunk pour debug
   const resultats = [];
   let justificationGlobal = "";
 
@@ -93,6 +93,8 @@ Remplace les valeurs manquantes par "Inconnu".
       });
 
       const raw = completion.choices[0].message.content.trim();
+      console.log("Réponse brute Groq:", raw);
+
       const match = raw.match(/\{[\s\S]*\}/);
       if (!match) {
         console.warn("Aucun JSON détecté dans la réponse Groq pour un chunk.");
@@ -118,38 +120,41 @@ Remplace les valeurs manquantes par "Inconnu".
   };
 }
 
-function normalizeText(str) {
-  return str
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/\p{Diacritic}/gu, "")
-    .replace(/[^\w\s]/g, ""); // enlève ponctuation
-}
-
 function filtrerEtablissements({ ville, type, code_postal, mots_cles }) {
   return etablissements.filter((etab) => {
-    // Ville : comparer en insensible à la casse et normalisé
+    // Ville : comparer insensible à la casse et normaliser accents
     if (ville) {
-      const villeEtab = normalizeText(etab.cp_ville.split(" ").slice(1).join(" "));
-      const villeNorm = normalizeText(ville);
+      const villeEtab = etab.cp_ville
+        .split(" ")
+        .slice(1)
+        .join(" ")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/\p{Diacritic}/gu, "");
+      const villeNorm = ville.toLowerCase().normalize("NFD").replace(/\p{Diacritic}/gu, "");
       if (!villeEtab.includes(villeNorm)) return false;
     }
-    // Type : insensible à la casse, normalisé
+    // Type : insensible à la casse
     if (type && type !== "") {
-      const catNorm = normalizeText(etab.categorie);
-      const typeNorm = normalizeText(type);
-      if (!catNorm.includes(typeNorm)) return false;
+      if (!etab.categorie.toLowerCase().includes(type.toLowerCase())) return false;
     }
-    // Code postal : vérifier uniquement les 2 premiers chiffres
+    // Code postal : vérifier uniquement 2 premiers chiffres
     if (code_postal && code_postal !== "") {
       if (!etab.cp_ville.startsWith(code_postal)) return false;
     }
-    // Mots-clés : chaque mot doit être contenu dans nom, catégorie ou adresse
+    // Mots-clés : chaque mot doit être dans nom, catégorie ou adresse
     if (mots_cles && mots_cles !== "") {
-      const mots = mots_cles.split(" ").map(normalizeText);
-      const haystack = normalizeText(
-        etab.nom + " " + etab.categorie + " " + etab.adresse_complete
-      );
+      const mots = mots_cles.toLowerCase().split(" ");
+      const haystack = (
+        etab.nom +
+        " " +
+        etab.categorie +
+        " " +
+        etab.adresse_complete
+      )
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/\p{Diacritic}/gu, "");
       if (!mots.every((mot) => haystack.includes(mot))) return false;
     }
 
@@ -175,8 +180,7 @@ app.post("/analyse", async (req, res) => {
     console.log("[Recherche] critères reçus :", { ville, type, code_postal, mots_cles });
 
     const filteredEtabs = filtrerEtablissements({ ville, type, code_postal, mots_cles });
-
-    console.log("[Recherche] établissements filtrés :", filteredEtabs.length);
+    console.log("[Recherche] établissements filtrés :", filteredEtabs);
 
     if (filteredEtabs.length === 0) {
       return res.json({
@@ -185,8 +189,15 @@ app.post("/analyse", async (req, res) => {
       });
     }
 
-    const resultatFinal = await analyserParMorceaux(ville || "Recherche", filteredEtabs, mots_cles || "");
+    // TEST TEMPORAIRE: renvoyer les résultats locaux sans appel Groq
+    /*
+    return res.json({
+      resultats: filteredEtabs.slice(0, 6),
+      justification: "Résultats filtrés localement sans analyse Groq (test).",
+    });
+    */
 
+    const resultatFinal = await analyserParMorceaux(ville || "Recherche", filteredEtabs, mots_cles || "");
     res.json(resultatFinal);
   } catch (err) {
     console.error("❌ Erreur serveur (/analyse) :", err);
@@ -194,7 +205,7 @@ app.post("/analyse", async (req, res) => {
   }
 });
 
-// Garde ta route /conseil telle quelle
+// Tu peux garder ta route /conseil telle quelle
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
